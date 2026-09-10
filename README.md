@@ -13,8 +13,28 @@
 
 - ⚡ **Lightweight & Fast**: Built for speed with minimal overhead
 - 📦 **Zero Dependencies**: Pure Alya code, entirely self-contained
-- 🛡️ **Reliable**: Fully typed API and predictable behavior
-- 🧪 **Well Tested**: Comprehensive test suite included
+- 🧩 **Modular Architecture**: Forward-looking multi-module design (`lib.alya`, `types.alya`, `core.alya`)
+- 🛡️ **Reliable & Typed**: Explicit struct definitions and clean namespaced APIs
+- 🧪 **Well Tested**: Comprehensive test suite with standard assertions
+
+---
+
+## 📁 Project Architecture
+
+```
+{{PACKAGE_NAME}}/
+├── alya.toml               # Package manifest
+├── src/
+│   ├── lib.alya            # Public API facade
+│   ├── types.alya          # Data structures & struct definitions
+│   └── core.alya           # Core domain logic & implementation
+├── examples/
+│   └── demo.alya           # Runnable usage examples
+├── tests/
+│   └── test_basic.alya     # Automated test suite
+└── benches/
+    └── bench_basic.alya    # Micro-benchmarks
+```
 
 ---
 
@@ -42,8 +62,14 @@ alyac install
 import "{{PACKAGE_NAME}}" as pkg
 
 function main()
+    # Basic facade call
     let greeting = pkg::hello("Alya")
     say greeting
+
+    # Struct construction and domain helpers
+    let cfg = pkg::new_config("Community", 2)
+    say "Target: " + cfg.name
+    say "Formatted: " + pkg::core_format_custom(cfg)
 end
 
 main()
@@ -55,11 +81,14 @@ main()
 
 | Function | Arguments | Returns | Description |
 |---|---|---|---|
-| `hello(name)` | `name: string = "World"` | `string` | Returns a friendly greeting message. |
+| `hello(name)` | `name = "World"` | `string` | Returns a friendly greeting message. |
+| `new_config(name, count)` | `name = "World", count = 1` | `{{PACKAGE_PASCAL_NAME}}Config` | Constructs a new configuration struct. |
+| `core_format_greeting(name)` | `name` | `string` | Core formatter producing `Hello, {name}!`. |
+| `core_format_custom(config)` | `config: {{PACKAGE_PASCAL_NAME}}Config` | `string` | Formats greeting using prefix and name from config. |
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Running Tests & Benchmarks
 
 Run the test suite using `alyac`:
 
@@ -67,10 +96,16 @@ Run the test suite using `alyac`:
 alyac run tests/test_basic.alya
 ```
 
-Or run directly from the package directory:
+Run the benchmark suite:
 
 ```bash
-alyac run
+alyac run benches/bench_basic.alya
+```
+
+Run the example demo:
+
+```bash
+alyac run examples/demo.alya
 ```
 
 ---
