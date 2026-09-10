@@ -3,7 +3,7 @@ import "std/color"
 import "../src/lib.alya" as pkg
 
 function test_hello()
-    let res = pkg.hello("Alya")
+    let res = pkg::hello("Alya")
     if res == "Hello, Alya!"
         say color_green("✓ test_hello passed")
         return 1

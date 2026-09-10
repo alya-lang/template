@@ -42,7 +42,7 @@ alyac install
 import "{{PACKAGE_NAME}}" as pkg
 
 function main()
-    let greeting = pkg.hello("Alya")
+    let greeting = pkg::hello("Alya")
     say greeting
 end
 
