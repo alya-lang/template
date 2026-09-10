@@ -5,8 +5,8 @@ entry = "src/lib.alya"
 description = "{{DESCRIPTION}}"
 authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
 license = "MIT"
-homepage = "https://github.com/alya-lang/{{PACKAGE_NAME}}"
+homepage = "https://github.com/alya-lang/alya"
 repository = "https://github.com/alya-lang/{{PACKAGE_NAME}}"
-keywords = ["alya", "package"]
+keywords = ["alya", "alya-lang", "package", "{{PACKAGE_NAME}}"]
 
 [dependencies]
