@@ -7,7 +7,7 @@ function main()
     let r = runner_new()
 
     let res = pkg::hello("Alya")
-    runner_assert_eq(r, res, "Hello, Alya!", "pkg::hello returns formatted greeting")
+    runner_assert_str_eq(r, res, "Hello, Alya!", "pkg::hello returns formatted greeting")
 
     let failed = runner_summary(r)
     if failed > 0
