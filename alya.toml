@@ -1,0 +1,12 @@
+[package]
+name = "{{PACKAGE_NAME}}"
+version = "0.1.0"
+entry = "src/lib.alya"
+description = "{{DESCRIPTION}}"
+authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
+license = "MIT"
+homepage = "https://github.com/alya-lang/{{PACKAGE_NAME}}"
+repository = "https://github.com/alya-lang/{{PACKAGE_NAME}}"
+keywords = ["alya", "package"]
+
+[dependencies]
