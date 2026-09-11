@@ -12,7 +12,6 @@
 ## 🌟 Features
 
 - ⚡ **Lightweight & Fast**: Built for speed with minimal overhead
-- 📦 **Zero Dependencies**: Pure Alya code, entirely self-contained
 - 🧩 **Modular Architecture**: Multi-module design supporting flat modules (`types.alya`) and subfolder hierarchies (`core/formatter.alya`)
 - 🛡️ **Reliable & Typed**: Explicit struct definitions and clean namespaced APIs
 - 🧪 **Well Tested**: Comprehensive test suite with standard assertions
@@ -116,15 +115,20 @@ alyac run examples/demo.alya
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps to contribute:
+Contributions are welcome! Please follow these steps:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/my-new-feature`)
-3. Commit your changes (`git commit -m "feat: add some feature"`)
-4. Push to the branch (`git push origin feature/my-new-feature`)
-5. Open a Pull Request
-
-Please make sure tests pass before submitting a PR.
+1. Fork the repository and clone it locally
+2. Install dependencies:
+   ```bash
+   alyac install
+   ```
+3. Create your feature branch (`git checkout -b feature/my-feature`)
+4. Verify tests and formatting before opening a PR:
+   ```bash
+   alyac test
+   alyac fmt . --check
+   ```
+5. Commit your changes (`git commit -m "feat: add feature"`) and open a Pull Request
 
 ---
 
