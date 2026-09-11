@@ -1,5 +1,7 @@
-# Core logic and internal helpers for {{PACKAGE_NAME}}
+# Core formatting logic and internal helpers for {{PACKAGE_NAME}}
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+
+import "../types.alya"
 
 function core_format_greeting(name)
     return "Hello, " + name + "!"

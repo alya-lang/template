@@ -2,7 +2,7 @@
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
 import "./types.alya"
-import "./core.alya"
+import "./core/formatter.alya"
 
 # Public facade functions
 function hello(name = "World")

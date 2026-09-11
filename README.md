@@ -13,7 +13,7 @@
 
 - ⚡ **Lightweight & Fast**: Built for speed with minimal overhead
 - 📦 **Zero Dependencies**: Pure Alya code, entirely self-contained
-- 🧩 **Modular Architecture**: Forward-looking multi-module design (`lib.alya`, `types.alya`, `core.alya`)
+- 🧩 **Modular Architecture**: Multi-module design supporting flat modules (`types.alya`) and subfolder hierarchies (`core/formatter.alya`)
 - 🛡️ **Reliable & Typed**: Explicit struct definitions and clean namespaced APIs
 - 🧪 **Well Tested**: Comprehensive test suite with standard assertions
 
@@ -27,7 +27,8 @@
 ├── src/
 │   ├── lib.alya            # Public API facade
 │   ├── types.alya          # Data structures & struct definitions
-│   └── core.alya           # Core domain logic & implementation
+│   └── core/               # Subdirectory module hierarchy (optional for larger packages)
+│       └── formatter.alya  # Domain formatting logic & internal helpers
 ├── examples/
 │   └── demo.alya           # Runnable usage examples
 ├── tests/
@@ -35,6 +36,9 @@
 └── benches/
     └── bench_basic.alya    # Micro-benchmarks
 ```
+
+> [!NOTE]
+> Modules can be structured flat inside `src/` (e.g. `src/types.alya`) or grouped into subdirectories (e.g. `src/core/formatter.alya`). Relative imports like `import "../types.alya"` or `import "./core/formatter.alya"` are resolved relative to the importing file and deduplicated transitively.
 
 ---
 
