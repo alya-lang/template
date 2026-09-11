@@ -47,13 +47,13 @@ Add `{{PACKAGE_NAME}}` to the `[dependencies]` section in your `alya.toml`:
 
 ```toml
 [dependencies]
-{{PACKAGE_NAME}} = { git = "https://github.com/alya-lang/{{PACKAGE_NAME}}", tag = "v0.1.0" }
+{{PACKAGE_NAME}} = { git = "https://github.com/alya-lang/{{PACKAGE_NAME}}", branch = "main" }
 ```
 
 Or install it directly using the Alya package CLI:
 
 ```bash
-alyac add {{PACKAGE_NAME}} --git https://github.com/alya-lang/{{PACKAGE_NAME}} --tag v0.1.0
+alyac add {{PACKAGE_NAME}} --git https://github.com/alya-lang/{{PACKAGE_NAME}} --branch main
 alyac install
 ```
 
