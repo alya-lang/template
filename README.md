@@ -23,9 +23,11 @@
 ```
 {{PACKAGE_NAME}}/
 ├── alya.toml               # Package manifest
+├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
 ├── src/
 │   ├── lib.alya            # Public API facade
 │   ├── types.alya          # Data structures & struct definitions
+│   ├── ffi.alya            # (Optional) Native extern "C" declarations
 │   └── core/               # Subdirectory module hierarchy (optional for larger packages)
 │       └── formatter.alya  # Domain formatting logic & internal helpers
 ├── examples/
@@ -37,7 +39,7 @@
 ```
 
 > [!NOTE]
-> Modules can be structured flat inside `src/` (e.g. `src/types.alya`) or grouped into subdirectories (e.g. `src/core/formatter.alya`). Relative imports like `import "../types.alya"` or `import "./core/formatter.alya"` are resolved relative to the importing file and deduplicated transitively.
+> **Modular Source & Native C:** Modules can be structured flat inside `src/` (e.g. `src/types.alya`) or grouped into subdirectories (e.g. `src/core/formatter.alya`). Packages bundling native C sources declare them in `alya.toml` under `[build]` (`c-sources`, `c-flags`, `c-include-dirs`); `alyac` automatically compiles and caches them into `.o` object files in `~/.alya/c_obj` with zero runtime dependency overhead.
 
 ---
 
