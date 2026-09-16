@@ -4,11 +4,21 @@
 import "./types.alya"
 import "./core/formatter.alya"
 
-# Public facade functions
-function hello(name = "World")
-    return core_format_greeting(name)
+# Internal sanitize helper (private to facade, not exported with pub)
+function internal_clean_name(name)
+    if name is null
+        return "World"
+    end
+    return name
 end
 
-function new_config(name = "World", count = 1)
-    return make_config(name, count)
+# Public facade functions (exported via pub)
+pub function hello(name = "World")
+    let clean = internal_clean_name(name)
+    return core_format_greeting(clean)
+end
+
+pub function new_config(name = "World", count = 1, style = TemplateStyle.Standard)
+    let clean = internal_clean_name(name)
+    return make_config(clean, count, style)
 end

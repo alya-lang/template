@@ -16,7 +16,7 @@ function main()
     bench_start(runner, 50000)
     let j = 0
     while j < 50000
-        let cfg = pkg::new_config("Bench", 1)
+        let cfg = pkg::new_config("Bench", 1, pkg::TemplateStyle.Formal)
         pkg::core_format_custom(cfg)
         j += 1
     end

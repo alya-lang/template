@@ -12,8 +12,10 @@
 ## 🌟 Features
 
 - ⚡ **Lightweight & Fast**: Built for speed with minimal overhead
-- 🧩 **Modular Architecture**: Multi-module design supporting flat modules (`types.alya`) and subfolder hierarchies (`core/formatter.alya`)
-- 🛡️ **Reliable & Typed**: Explicit struct definitions and clean namespaced APIs
+- 🧩 **Modular Architecture**: Multi-module design with public API facade (`src/lib.alya`), data models (`src/types.alya`), and subfolder hierarchies (`src/core/formatter.alya`)
+- 🔒 **Public/Private Visibility (`pub`)**: Explicit export control with `pub` for public functions, structs, and enums, keeping internal helper functions private and encapsulated
+- 🎨 **Modern Syntax & Features**: First-class `enum` variants, struct methods (`config.summary()`), pattern matching with `when`, and null-checks (`is null`)
+- 🛡️ **Reliable & Typed**: Explicit struct definitions, default parameters, and clean namespaced APIs
 - 🧪 **Well Tested**: Comprehensive test suite with standard assertions
 
 ---
@@ -25,11 +27,11 @@
 ├── alya.toml               # Package manifest
 ├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
 ├── src/
-│   ├── lib.alya            # Public API facade
-│   ├── types.alya          # Data structures & struct definitions
+│   ├── lib.alya            # Public API facade (pub exports & private sanitizers)
+│   ├── types.alya          # Data models, pub enum, pub struct, and struct methods
 │   ├── ffi.alya            # (Optional) Native extern "C" declarations
 │   └── core/               # Subdirectory module hierarchy (optional for larger packages)
-│       └── formatter.alya  # Domain formatting logic & internal helpers
+│       └── formatter.alya  # Domain formatting logic, pub helpers & private when matchers
 ├── examples/
 │   └── demo.alya           # Runnable usage examples
 ├── tests/
@@ -39,7 +41,7 @@
 ```
 
 > [!NOTE]
-> **Modular Source & Native C:** Modules can be structured flat inside `src/` (e.g. `src/types.alya`) or grouped into subdirectories (e.g. `src/core/formatter.alya`). Packages bundling native C sources declare them in `alya.toml` under `[build]` (`c-sources`, `c-flags`, `c-include-dirs`); `alyac` automatically compiles and caches them into `.o` object files in `~/.alya/c_obj` with zero runtime dependency overhead.
+> **Visibility & Modularity:** Symbols annotated with `pub` (`pub function`, `pub struct`, `pub enum`) are exported to callers and re-exporting modules. Symbols without `pub` remain strictly private/internal to their declaring module, preventing naming collisions and accidental symbol leakage.
 
 ---
 
@@ -67,13 +69,13 @@ alyac install
 import "{{PACKAGE_NAME}}" as pkg
 
 function main()
-    # Basic facade call
-    let greeting = pkg::hello("Alya")
+    # 1. Basic facade call with default parameter
+    let greeting = pkg::hello()
     say greeting
 
-    # Struct construction and domain helpers
-    let cfg = pkg::new_config("Community", 2)
-    say "Target: " + cfg.name
+    # 2. Struct configuration with enum style and struct method
+    let cfg = pkg::new_config("Community", 5, pkg::{{PACKAGE_PASCAL_NAME}}Style.Formal)
+    say "Summary:   " + cfg.summary()
     say "Formatted: " + pkg::core_format_custom(cfg)
 end
 
@@ -84,12 +86,18 @@ main()
 
 ## 📖 API Reference
 
-| Function | Arguments | Returns | Description |
-|---|---|---|---|
-| `hello(name)` | `name = "World"` | `string` | Returns a friendly greeting message. |
-| `new_config(name, count)` | `name = "World", count = 1` | `{{PACKAGE_PASCAL_NAME}}Config` | Constructs a new configuration struct. |
-| `core_format_greeting(name)` | `name` | `string` | Core formatter producing `Hello, {name}!`. |
-| `core_format_custom(config)` | `config: {{PACKAGE_PASCAL_NAME}}Config` | `string` | Formats greeting using prefix and name from config. |
+| Symbol | Visibility | Description |
+|---|---|---|
+| `hello(name = "World")` | `pub function` | Returns a friendly greeting message. Defaults to `"World"` if null or omitted. |
+| `new_config(name, count, style)` | `pub function` | Constructs a new configuration struct with defaults (`"World"`, `1`, `Standard`). |
+| `{{PACKAGE_PASCAL_NAME}}Style` | `pub enum` | Enumeration of available greeting styles (`Standard`, `Formal`, `Casual`). |
+| `{{PACKAGE_PASCAL_NAME}}Config` | `pub struct` | Configuration data model (`name`, `prefix`, `count`, `style`). |
+| `{{PACKAGE_PASCAL_NAME}}Config.summary()` | `pub method` | Returns formatted string summary of the configuration. |
+| `core_format_greeting(name)` | `pub function` | Core formatter producing `Hello, {name}!`. |
+| `core_format_custom(config)` | `pub function` | Formats greeting using prefix, style (via `when`), and name from config. |
+
+> [!TIP]
+> **Internal Helpers:** Private functions such as `internal_clean_name` in `src/lib.alya` and `build_salutation` in `src/core/formatter.alya` are not annotated with `pub`. They can only be accessed internally within their respective modules.
 
 ---
 
@@ -128,7 +136,6 @@ Contributions are welcome! Please follow these steps:
 4. Verify tests and formatting before opening a PR:
    ```bash
    alyac test
-   alyac fmt . --check
    ```
 5. Commit your changes (`git commit -m "feat: add feature"`) and open a Pull Request
 

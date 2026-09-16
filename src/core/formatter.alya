@@ -3,10 +3,22 @@
 
 import "../types.alya"
 
-function core_format_greeting(name)
+# Internal helper using when pattern matching (private to module, not exported with pub)
+function build_salutation(prefix, style)
+    return when style
+        is TemplateStyle.Formal => "Greetings and " + prefix
+        is TemplateStyle.Casual => "Hey"
+        else                    => prefix
+    end
+end
+
+# Public formatting function (exported via pub)
+pub function core_format_greeting(name)
     return "Hello, " + name + "!"
 end
 
-function core_format_custom(config)
-    return config.prefix + ", " + config.name + "!"
+# Public custom formatter using struct and pattern matching (exported via pub)
+pub function core_format_custom(config)
+    let salutation = build_salutation(config.prefix, config.style)
+    return salutation + ", " + config.name + "!"
 end

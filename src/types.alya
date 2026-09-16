@@ -1,16 +1,41 @@
 # Types and data structures for {{PACKAGE_NAME}}
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
-struct TemplateConfig
-    name
-    prefix
-    count
+# Public enumeration for greeting styles (exported via pub)
+pub enum TemplateStyle
+    Standard,
+    Formal,
+    Casual
 end
 
-function make_config(name = "World", count = 1)
+# Public configuration model (exported via pub)
+pub struct TemplateConfig
+    name,
+    prefix,
+    count,
+    style
+end
+
+# Struct method: summary representation
+pub function TemplateConfig.summary(self)
+    return "{self.prefix} {self.name} (count: {self.count})"
+end
+
+# Internal validation helper (private to module, not exported with pub)
+function validate_name(name)
+    if name is null or name == ""
+        return "World"
+    end
+    return name
+end
+
+# Public constructor function for configuration (exported via pub)
+pub function make_config(name = "World", count = 1, style = TemplateStyle.Standard)
+    let valid_name = validate_name(name)
     return TemplateConfig {
-        name: name,
+        name: valid_name,
         prefix: "Hello",
-        count: count
+        count: count,
+        style: style
     }
 end
