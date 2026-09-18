@@ -1,5 +1,5 @@
 # Benchmark suite for {{PACKAGE_NAME}}
-import "std/bench"
+import "std/test"
 import "../src/lib.alya" as pkg
 
 function main()

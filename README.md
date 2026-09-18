@@ -92,21 +92,28 @@ main()
 | `new_config(name, count, style)` | `pub function` | Constructs a new configuration struct with defaults (`"World"`, `1`, `Standard`). |
 | `{{PACKAGE_PASCAL_NAME}}Style` | `pub enum` | Enumeration of available greeting styles (`Standard`, `Formal`, `Casual`). |
 | `{{PACKAGE_PASCAL_NAME}}Config` | `pub struct` | Configuration data model (`name`, `prefix`, `count`, `style`). |
-| `{{PACKAGE_PASCAL_NAME}}Config.summary()` | `pub method` | Returns formatted string summary of the configuration. |
+| `{{PACKAGE_PASCAL_NAME}}Config.summary()` | `pub method` | Returns formatted string summary using struct destructuring. |
+| `{{PACKAGE_PASCAL_NAME}}Config.with_name(new_name)` | `pub method` | Returns an updated configuration copy with a new validated name. |
 | `core_format_greeting(name)` | `pub function` | Core formatter producing `Hello, {name}!`. |
 | `core_format_custom(config)` | `pub function` | Formats greeting using prefix, style (via `when`), and name from config. |
 
 > [!TIP]
-> **Internal Helpers:** Private functions such as `internal_clean_name` in `src/lib.alya` and `build_salutation` in `src/core/formatter.alya` are not annotated with `pub`. They can only be accessed internally within their respective modules.
+> **Internal Helpers & Documentation:** Public symbols are documented with `##` Markdown docstrings, enabling automatic API documentation generation via `alya doc`. Private functions such as `internal_clean_name` in `src/lib.alya` and `build_salutation` in `src/core/formatter.alya` are not annotated with `pub` and remain encapsulated within their respective modules.
 
 ---
 
-## 🧪 Running Tests & Benchmarks
+## 🧪 Running Tests, Benchmarks & Documentation
 
-Run the test suite using `alya`:
+Run the automated test suite using `alya test`:
 
 ```bash
-alya run tests/test_basic.alya
+alya test
+```
+
+Generate static API documentation:
+
+```bash
+alya doc . -o docs --markdown
 ```
 
 Run the benchmark suite:
@@ -119,6 +126,12 @@ Run the example demo:
 
 ```bash
 alya run examples/demo.alya
+```
+
+Check code formatting:
+
+```bash
+alya fmt . --check
 ```
 
 ---

@@ -10,16 +10,20 @@ function main()
     let msg2 = pkg::hello("Alya Developer")
     say msg2
 
-    # 3. Struct config with enum style and struct method
+    # 3. Struct config with enum style, destructuring, and struct method
     let cfg_standard = pkg::new_config("Community", 5)
     say "Standard summary: " + cfg_standard.summary()
     say "Standard format:  " + pkg::core_format_custom(cfg_standard)
 
-    # 4. Formal style using pub enum
+    # 4. Immutable update with with_name
+    let cfg_updated = cfg_standard.with_name("Core Team")
+    say "Updated summary:  " + cfg_updated.summary()
+
+    # 5. Formal style using pub enum
     let cfg_formal = pkg::new_config("Distinguished Guest", 1, pkg::TemplateStyle.Formal)
     say "Formal format:    " + pkg::core_format_custom(cfg_formal)
 
-    # 5. Casual style using pub enum
+    # 6. Casual style using pub enum
     let cfg_casual = pkg::new_config("Friend", 1, pkg::TemplateStyle.Casual)
     say "Casual format:    " + pkg::core_format_custom(cfg_casual)
 end

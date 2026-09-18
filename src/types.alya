@@ -1,36 +1,47 @@
-# Types and data structures for {{PACKAGE_NAME}}
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Types and data structures for {{PACKAGE_NAME}}
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
-# Public enumeration for greeting styles (exported via pub)
+## Public enumeration for greeting styles
 pub enum TemplateStyle
     Standard,
     Formal,
     Casual
 end
 
-# Public configuration model (exported via pub)
+## Public configuration model holding greeting parameters
 pub struct TemplateConfig
-    name,
-    prefix,
-    count,
-    style
+    name: string,
+    prefix: string,
+    count: int,
+    style: int
 end
 
-# Struct method: summary representation
-pub function TemplateConfig.summary(self)
+## Struct method returning a formatted summary of the configuration
+pub function TemplateConfig.summary(self: TemplateConfig) -> string
     return "{self.prefix} {self.name} (count: {self.count})"
 end
 
-# Internal validation helper (private to module, not exported with pub)
-function validate_name(name)
-    if name is null or name == ""
-        return "World"
-    end
-    return name
+## Struct method returning an updated copy of configuration with a new name
+pub function TemplateConfig.with_name(self: TemplateConfig, new_name: string) -> TemplateConfig
+    return TemplateConfig {
+        name: validate_name(new_name),
+        prefix: self.prefix,
+        count: self.count,
+        style: self.style
+    }
 end
 
-# Public constructor function for configuration (exported via pub)
-pub function make_config(name = "World", count = 1, style = TemplateStyle.Standard)
+# Internal validation helper (private to module, not exported with pub)
+function validate_name(name: string) -> string
+    return when
+        name is null => "World"
+        name == ""   => "World"
+        else         => name
+    end
+end
+
+## Public constructor function for configuration
+pub function make_config(name: string = "World", count: int = 1, style: int = TemplateStyle.Standard) -> TemplateConfig
     let valid_name = validate_name(name)
     return TemplateConfig {
         name: valid_name,

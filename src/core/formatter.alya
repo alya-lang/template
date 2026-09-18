@@ -1,24 +1,24 @@
-# Core formatting logic and internal helpers for {{PACKAGE_NAME}}
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## Core formatting logic and internal helpers for {{PACKAGE_NAME}}
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
 import "../types.alya"
 
 # Internal helper using when pattern matching (private to module, not exported with pub)
-function build_salutation(prefix, style)
+function build_salutation(prefix: string, style: int) -> string
     return when style
-        is TemplateStyle.Formal => "Greetings and " + prefix
+        is TemplateStyle.Formal => "Greetings and {prefix}"
         is TemplateStyle.Casual => "Hey"
         else                    => prefix
     end
 end
 
-# Public formatting function (exported via pub)
-pub function core_format_greeting(name)
-    return "Hello, " + name + "!"
+## Public formatting function producing a standard greeting
+pub function core_format_greeting(name: string) -> string
+    return "Hello, {name}!"
 end
 
-# Public custom formatter using struct and pattern matching (exported via pub)
-pub function core_format_custom(config)
+## Public custom formatter using struct fields and pattern matching
+pub function core_format_custom(config: TemplateConfig) -> string
     let salutation = build_salutation(config.prefix, config.style)
-    return salutation + ", " + config.name + "!"
+    return "{salutation}, {config.name}!"
 end

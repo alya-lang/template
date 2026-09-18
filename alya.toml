@@ -16,3 +16,4 @@ keywords = ["alya", "alya-lang", "package", "{{PACKAGE_NAME}}"]
 # c-sources = ["c/source.c"]
 # c-flags = ["-O2"]
 # c-include-dirs = ["c"]
+# links = "{{PACKAGE_NAME}}"

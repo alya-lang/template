@@ -1,24 +1,26 @@
-# {{PACKAGE_NAME}} library
-# Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+## {{PACKAGE_NAME}} library facade
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
 import "./types.alya"
 import "./core/formatter.alya"
 
 # Internal sanitize helper (private to facade, not exported with pub)
-function internal_clean_name(name)
-    if name is null
-        return "World"
+function internal_clean_name(name: string) -> string
+    return when
+        name is null => "World"
+        name == ""   => "World"
+        else         => name
     end
-    return name
 end
 
-# Public facade functions (exported via pub)
-pub function hello(name = "World")
+## Public facade greeting function. Returns formatted greeting message.
+pub function hello(name: string = "World") -> string
     let clean = internal_clean_name(name)
     return core_format_greeting(clean)
 end
 
-pub function new_config(name = "World", count = 1, style = TemplateStyle.Standard)
+## Public constructor for configuration model with defaults.
+pub function new_config(name: string = "World", count: int = 1, style: int = TemplateStyle.Standard) -> TemplateConfig
     let clean = internal_clean_name(name)
     return make_config(clean, count, style)
 end
