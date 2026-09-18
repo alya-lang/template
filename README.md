@@ -71,12 +71,12 @@ import "{{PACKAGE_NAME}}" as pkg
 function main()
     # 1. Basic facade call with default parameter
     let greeting = pkg::hello()
-    say greeting
+    say f"Greeting:  {greeting}"
 
     # 2. Struct configuration with enum style and struct method
     let cfg = pkg::new_config("Community", 5, pkg::{{PACKAGE_PASCAL_NAME}}Style.Formal)
-    say "Summary:   " + cfg.summary()
-    say "Formatted: " + pkg::core_format_custom(cfg)
+    say f"Summary:   {cfg.summary()}"
+    say f"Formatted: {pkg::core_format_custom(cfg)}"
 end
 
 main()
@@ -92,7 +92,7 @@ main()
 | `new_config(name, count, style)` | `pub function` | Constructs a new configuration struct with defaults (`"World"`, `1`, `Standard`). |
 | `{{PACKAGE_PASCAL_NAME}}Style` | `pub enum` | Enumeration of available greeting styles (`Standard`, `Formal`, `Casual`). |
 | `{{PACKAGE_PASCAL_NAME}}Config` | `pub struct` | Configuration data model (`name`, `prefix`, `count`, `style`). |
-| `{{PACKAGE_PASCAL_NAME}}Config.summary()` | `pub method` | Returns formatted string summary using struct destructuring. |
+| `{{PACKAGE_PASCAL_NAME}}Config.summary()` | `pub method` | Returns formatted string summary representation. |
 | `{{PACKAGE_PASCAL_NAME}}Config.with_name(new_name)` | `pub method` | Returns an updated configuration copy with a new validated name. |
 | `core_format_greeting(name)` | `pub function` | Core formatter producing `Hello, {name}!`. |
 | `core_format_custom(config)` | `pub function` | Formats greeting using prefix, style (via `when`), and name from config. |
