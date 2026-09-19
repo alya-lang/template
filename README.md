@@ -24,6 +24,7 @@
 
 ```
 {{PACKAGE_NAME}}/
+├── .vscode/                # VS Code workspace settings, DAP launch configurations & tasks
 ├── alya.toml               # Package manifest
 ├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
 ├── src/
@@ -133,6 +134,21 @@ Check code formatting:
 ```bash
 alya fmt . --check
 ```
+
+Run static code linter:
+
+```bash
+alya lint . --check
+```
+
+---
+
+## 💻 Developer Tooling & VS Code Integration
+
+This package comes preconfigured with recommended workspace settings and tasks for **Visual Studio Code**:
+- **LSP & Formatting**: Auto-formatting on save and real-time Language Server diagnostics via `alya-lang.vscode-alya`.
+- **DAP Debugging**: Launch configurations in `.vscode/launch.json` ready for interactive step-debugging via `F5`.
+- **Predefined Tasks**: Press `Ctrl+Shift+B` or run tasks (`Test`, `Lint`, `Format`, `Build Docs`) directly from the Command Palette.
 
 ---
 

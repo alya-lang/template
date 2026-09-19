@@ -38,6 +38,10 @@ jobs:
         run: |
           alya fmt . --check
 
+      - name: Run static analysis (linter)
+        run: |
+          alya lint . --check
+
       - name: Check package manifest
         run: |
           alya pkg list
@@ -49,6 +53,11 @@ jobs:
       - name: Run package test suite
         run: |
           alya test
+
+      - name: Run micro-benchmarks smoke test
+        if: hashFiles('benches/bench_basic.alya') != ''
+        run: |
+          alya run benches/bench_basic.alya
 
       - name: Build documentation
         shell: bash
