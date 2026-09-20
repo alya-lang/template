@@ -146,7 +146,7 @@ alya lint . --check
 
 ---
 
-## 💻 Developer Tooling & VS Code Integration
+### 💻 Developer Tooling & VS Code Integration
 
 This package comes preconfigured with recommended workspace settings and tasks for **Visual Studio Code**:
 - **LSP & Formatting**: Auto-formatting on save and real-time Language Server diagnostics via `alya-lang.vscode-alya`.
