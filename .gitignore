@@ -16,6 +16,8 @@ alya.lock.bak
 *.db
 *.log
 RELEASE_NOTES.md
+__pycache__/
+*.pyc
 
 # Environment configuration files
 .env
