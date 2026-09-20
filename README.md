@@ -106,7 +106,7 @@ main()
 
 ---
 
-## 🧪 Running Tests, Benchmarks & Documentation
+## 🧪 Running Tests & Benchmarks
 
 Run the automated test suite using `alya test`:
 
