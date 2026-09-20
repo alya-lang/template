@@ -66,7 +66,9 @@ jobs:
           if [ -f docs/index.md ]; then
             echo "### 📖 API Documentation Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            cat docs/index.md >> $GITHUB_STEP_SUMMARY
+            echo "Full HTML and Markdown documentation has been generated and archived in the **[api-docs]** artifact." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            sed -E 's/\[([^]]+)\]\([^)]+\)/\1/g' docs/index.md | grep -v "Official API reference" | grep -v "^# " >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Upload documentation artifact

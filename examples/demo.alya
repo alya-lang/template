@@ -17,15 +17,20 @@ function main()
     say f"Standard summary: {cfg_standard.summary()}"
     say f"Standard format:  {pkg::core_format_custom(cfg_standard)}"
 
-    # 4. Immutable update with with_name
+    # 4. Duck typing with Summarizable interface
+    if cfg_standard is pkg::Summarizable
+        say f"Interface summary: {pkg::format_summary(cfg_standard)}"
+    end
+
+    # 5. Immutable update with with_name
     let cfg_updated = cfg_standard.with_name("Core Team")
     say f"Updated summary:  {cfg_updated.summary()}"
 
-    # 5. Formal style using pub enum
+    # 6. Formal style using pub enum
     let cfg_formal = pkg::new_config("Distinguished Guest", 1, pkg::TemplateStyle.Formal)
     say f"Formal format:    {pkg::core_format_custom(cfg_formal)}"
 
-    # 6. Casual style using pub enum
+    # 7. Casual style using pub enum
     let cfg_casual = pkg::new_config("Friend", 1, pkg::TemplateStyle.Casual)
     say f"Casual format:    {pkg::core_format_custom(cfg_casual)}"
 end

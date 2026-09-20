@@ -1,7 +1,15 @@
 ## {{PACKAGE_NAME}} Types & Data Structures
 ##
 ## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
-## Defines configuration models, style enumerations, and associated methods.
+## Defines configuration models, style enumerations, structural interfaces, and associated methods.
+
+## Public interface for objects capable of producing a formatted string summary.
+##
+## Any struct implementing a `summary(self) -> string` method implicitly
+## satisfies this interface via Alya's structural duck-typing runtime.
+pub interface Summarizable
+    function summary(self) -> string
+end
 
 ## Public enumeration of greeting formality styles.
 ##
@@ -23,7 +31,7 @@ end
 ## - `name`: The validated recipient name.
 ## - `prefix`: Salutation prefix (defaults to `"Hello"`).
 ## - `count`: Greeting count or repetition limit.
-## - `style`: Greeting style enum code (`TemplateStyle`).
+## - `style`: Formality style enum code (`TemplateStyle` variant stored as integer).
 pub struct TemplateConfig
     name: string,
     prefix: string,
@@ -31,7 +39,26 @@ pub struct TemplateConfig
     style: int
 end
 
+## Sanitizes and validates an input recipient name string.
+##
+## Defaults to `"World"` if the name parameter is omitted, empty, or null.
+##
+## ### Parameters
+## - `name`: The candidate recipient name.
+##
+## ### Returns
+## The sanitized non-empty recipient string.
+pub function sanitize_name(name) -> string
+    return when
+        name is null => "World"
+        name == ""   => "World"
+        else         => name
+    end
+end
+
 ## Returns a human-readable formatted summary string of this configuration.
+##
+## Implicitly satisfies the `Summarizable` interface.
 ##
 ## ### Parameters
 ## - `self`: The target `TemplateConfig` instance.
@@ -61,27 +88,18 @@ end
 ## ```alya
 ## let updated = cfg.with_name("Contributors")
 ## ```
-pub function TemplateConfig.with_name(self: TemplateConfig, new_name: string) -> TemplateConfig
+pub function TemplateConfig.with_name(self: TemplateConfig, new_name) -> TemplateConfig
     return TemplateConfig {
-        name: validate_name(new_name),
+        name: sanitize_name(new_name),
         prefix: self.prefix,
         count: self.count,
         style: self.style
     }
 end
 
-# Internal validation helper (private to module, not exported with pub)
-function validate_name(name: string) -> string
-    return when
-        name is null => "World"
-        name == ""   => "World"
-        else         => name
-    end
-end
-
 ## Factory constructor creating a validated `TemplateConfig` instance.
 ##
-## Sanitizes the input name using `validate_name` and assigns the default `"Hello"` prefix.
+## Sanitizes the input name using `sanitize_name` and assigns the default `"Hello"` prefix.
 ##
 ## ### Parameters
 ## - `name`: Recipient name string. Defaults to `"World"`.
@@ -95,8 +113,8 @@ end
 ## ```alya
 ## let cfg = make_config("World", 1, TemplateStyle.Standard)
 ## ```
-pub function make_config(name: string = "World", count: int = 1, style: int = TemplateStyle.Standard) -> TemplateConfig
-    let valid_name = validate_name(name)
+pub function make_config(name = "World", count: int = 1, style: int = TemplateStyle.Standard) -> TemplateConfig
+    let valid_name = sanitize_name(name)
     return TemplateConfig {
         name: valid_name,
         prefix: "Hello",

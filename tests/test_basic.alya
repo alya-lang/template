@@ -39,7 +39,13 @@ function main()
     runner_assert_str_eq(r, updated_cfg.name, "Contributors", "cfg.with_name updates name")
     runner_assert_str_eq(r, updated_cfg.summary(), "Hello Contributors (count: 3)", "updated_cfg summary is correct")
 
-    # 8. Core custom formatter using struct
+    # 8. Interface duck typing via is Summarizable
+    let is_summ = cfg is pkg::Summarizable
+    runner_assert_true(r, is_summ, "cfg satisfies Summarizable interface implicitly")
+    let iface_res = pkg::format_summary(cfg)
+    runner_assert_str_eq(r, iface_res, "Hello Community (count: 3)", "format_summary dispatches via interface")
+
+    # 9. Core custom formatter using struct
     let custom_res = pkg::core_format_custom(cfg)
     runner_assert_str_eq(r, custom_res, "Hello, Community!", "pkg::core_format_custom formats using config")
 

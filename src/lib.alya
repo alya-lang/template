@@ -6,15 +6,6 @@
 import "./types.alya"
 import "./core/formatter.alya"
 
-# Internal sanitize helper (private to facade, not exported with pub)
-function internal_clean_name(name: string) -> string
-    return when
-        name is null => "World"
-        name == ""   => "World"
-        else         => name
-    end
-end
-
 ## Formats and returns a greeting message for the specified recipient.
 ##
 ## Defaults to `"World"` if the name parameter is omitted, empty, or null.
@@ -30,14 +21,14 @@ end
 ## let msg = hello("Alya")
 ## say msg # "Hello, Alya!"
 ## ```
-pub function hello(name: string = "World") -> string
-    let clean = internal_clean_name(name)
+pub function hello(name = "World") -> string
+    let clean = sanitize_name(name)
     return core_format_greeting(clean)
 end
 
 ## Constructs a new configuration model instance with specified or default values.
 ##
-## Automatically validates and sanitizes the input name using `internal_clean_name`.
+## Automatically validates and sanitizes the input name using `sanitize_name`.
 ##
 ## ### Parameters
 ## - `name`: Target recipient name. Defaults to `"World"`.
@@ -51,7 +42,28 @@ end
 ## ```alya
 ## let cfg = new_config("Community", 5, TemplateStyle.Formal)
 ## ```
-pub function new_config(name: string = "World", count: int = 1, style: int = TemplateStyle.Standard) -> TemplateConfig
-    let clean = internal_clean_name(name)
-    return make_config(clean, count, style)
+pub function new_config(name = "World", count: int = 1, style: int = TemplateStyle.Standard) -> TemplateConfig
+    return make_config(name, count, style)
+end
+
+## Formats and returns the summary representation of any object satisfying the `Summarizable` interface.
+##
+## Demonstrates Alya's structural duck-typing polymorphism.
+##
+## ### Parameters
+## - `item`: Any object possessing a matching `summary(self) -> string` method.
+##
+## ### Returns
+## The string returned by the item's `summary()` method.
+##
+## ### Examples
+## ```alya
+## let cfg = new_config("Community", 3)
+## say format_summary(cfg) # "Hello Community (count: 3)"
+## ```
+pub function format_summary(item) -> string
+    if item is Summarizable
+        return item.summary()
+    end
+    return "Not summarizable"
 end
