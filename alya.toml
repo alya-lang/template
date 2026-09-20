@@ -17,3 +17,7 @@ keywords = ["alya", "alya-lang", "package", "{{PACKAGE_NAME}}"]
 # c-flags = ["-O2"]
 # c-include-dirs = ["c"]
 # links = "{{PACKAGE_NAME}}"
+
+# [lint]
+# disabled_rules = []
+# exclude = []

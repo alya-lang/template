@@ -24,6 +24,7 @@
 
 ```
 {{PACKAGE_NAME}}/
+├── .alyalint               # Linter configuration (rules, exclusions, severity overrides)
 ├── .vscode/                # VS Code workspace settings, DAP launch configurations & tasks
 ├── alya.toml               # Package manifest
 ├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
