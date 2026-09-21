@@ -11,12 +11,14 @@
 
 ## 🌟 Features
 
-- ⚡ **Lightweight & Fast**: Built for speed with minimal overhead
-- 🧩 **Modular Architecture**: Multi-module design with public API facade (`src/lib.alya`), data models (`src/types.alya`), and subfolder hierarchies (`src/core/formatter.alya`)
-- 🔒 **Public/Private Visibility (`pub`)**: Explicit export control with `pub` for public functions, structs, and enums, keeping internal helper functions private and encapsulated
-- 🎨 **Modern Syntax & Features**: First-class `enum` variants, struct methods (`config.summary()`), pattern matching with `when`, and null-checks (`is null`)
-- 🛡️ **Reliable & Typed**: Explicit struct definitions, default parameters, and clean namespaced APIs
-- 🧪 **Well Tested**: Comprehensive test suite with standard assertions
+- ⚡ **Lightweight & High Performance**: Minimal memory overhead, zero runtime bloat, and fast native execution
+- 🧩 **Modular Architecture**: Layered multi-module design featuring a clean public facade (`src/lib.alya`), rich data models (`src/types.alya`), and encapsulated core formatters (`src/core/formatter.alya`)
+- 🔒 **Public/Private Visibility (`pub`)**: Fine-grained export control with `pub` for public functions, structs, and enums, keeping internal helper functions private and encapsulated
+- 🎭 **Structural Duck Typing & Interfaces**: Dynamic interface dispatch (`Summarizable`, `Describable`) without brittle inheritance hierarchies
+- 📦 **Rich Domain Models & Enums**: Idiomatic `enum` types (`TemplateStatus`, `TemplatePriority`, `TemplateStyle`) and typed data containers (`TemplateConfig`, `TemplateResult`, `TemplateStats`)
+- 🎯 **Advanced Pattern Matching**: Clean branching with `when` expressions, range matching, and condition guards
+- 🛡️ **Defensive Result Pattern**: Structured error handling and outcome encapsulation with `ok_result` and `error_result`
+- 🧪 **Enterprise Test & Benchmark Suite**: 100% test coverage with standard assertions (`std/test`) and micro-benchmarking (`std/test` bench runner)
 
 ---
 
@@ -25,25 +27,27 @@
 ```
 {{PACKAGE_NAME}}/
 ├── .alyalint               # Linter configuration (rules, exclusions, severity overrides)
+├── .editorconfig           # Uniform formatting rules across IDEs and editors
+├── .gitignore              # Ecosystem standard ignore filters
 ├── .vscode/                # VS Code workspace settings, DAP launch configurations & tasks
-├── alya.toml               # Package manifest
+├── alya.toml               # Package manifest with dependencies and optional [build]
 ├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
 ├── src/
-│   ├── lib.alya            # Public API facade (pub exports & private sanitizers)
-│   ├── types.alya          # Data models, pub enum, pub struct, and struct methods
+│   ├── lib.alya            # Public API facade (pub exports, re-exports & pipeline runners)
+│   ├── types.alya          # Data models, pub enums, pub structs, and struct methods
 │   ├── ffi.alya            # (Optional) Native extern "C" declarations
-│   └── core/               # Subdirectory module hierarchy (optional for larger packages)
-│       └── formatter.alya  # Domain formatting logic, pub helpers & private when matchers
+│   └── core/               # Subdirectory module hierarchy
+│       └── formatter.alya  # Domain formatting routines, salutation builders & pattern matchers
 ├── examples/
-│   └── demo.alya           # Runnable usage examples
+│   └── demo.alya           # Comprehensive runnable walkthrough of all package capabilities
 ├── tests/
-│   └── test_basic.alya     # Automated test suite
+│   └── test_basic.alya     # Automated test suite with 100% feature coverage
 └── benches/
-    └── bench_basic.alya    # Micro-benchmarks
+    └── bench_basic.alya    # Micro-benchmarks measuring performance and throughput
 ```
 
 > [!NOTE]
-> **Visibility & Modularity:** Symbols annotated with `pub` (`pub function`, `pub struct`, `pub enum`) are exported to callers and re-exporting modules. Symbols without `pub` remain strictly private/internal to their declaring module, preventing naming collisions and accidental symbol leakage.
+> **Visibility & Modularity:** Symbols annotated with `pub` (`pub function`, `pub struct`, `pub enum`, `pub interface`) are exported to external consumers and re-exporting modules. Symbols without `pub` remain strictly internal to their declaring module, preventing symbol collisions and implementation leakage.
 
 ---
 
@@ -75,10 +79,14 @@ function main()
     let greeting = pkg::hello()
     say f"Greeting:  {greeting}"
 
-    # 2. Struct configuration with enum style and struct method
-    let cfg = pkg::new_config("Community", 5, pkg::{{PACKAGE_PASCAL_NAME}}Style.Formal)
+    # 2. Struct configuration with priority, style, and methods
+    let cfg = pkg::new_config("Community", 5, pkg::TemplatePriority.High, pkg::TemplateStyle.Formal)
     say f"Summary:   {cfg.summary()}"
     say f"Formatted: {pkg::core_format_custom(cfg)}"
+
+    # 3. Processing pipeline returning Result model
+    let res = pkg::process("Analytics", 3, pkg::TemplatePriority.Critical)
+    say f"Outcome:   {res.message}"
 end
 
 main()
@@ -90,20 +98,44 @@ main()
 
 | Symbol | Visibility | Description |
 |---|---|---|
-| `hello(name = "World")` | `pub function` | Returns a friendly greeting message. Defaults to `"World"` if null or omitted. |
-| `new_config(name, count, style)` | `pub function` | Constructs a new configuration struct with defaults (`"World"`, `1`, `Standard`). |
-| `format_summary(item)` | `pub function` | Formats summary of any instance implementing the `Summarizable` interface. |
-| `sanitize_name(name)` | `pub function` | Validates and sanitizes a recipient name string. |
-| `Summarizable` | `pub interface` | Structural duck-typing interface requiring a `summary(self) -> string` method. |
-| `TemplateStyle` | `pub enum` | Enumeration of available greeting styles (`Standard`, `Formal`, `Casual`). |
-| `TemplateConfig` | `pub struct` | Configuration data model (`name`, `prefix`, `count`, `style`). |
-| `TemplateConfig.summary()` | `pub method` | Returns formatted string summary representation (satisfies `Summarizable`). |
-| `TemplateConfig.with_name(new_name)` | `pub method` | Returns an updated configuration copy with a new validated name. |
-| `core_format_greeting(name)` | `pub function` | Core formatter producing `Hello, {name}!`. |
-| `core_format_custom(config)` | `pub function` | Formats greeting using prefix, style (via `when`), and name from config. |
+| `hello(name = "World")` | `pub function` | Returns a formatted greeting string. Defaults to `"World"` if null or empty. |
+| `new_config(name, count, priority, style)` | `pub function` | Factory constructing a `TemplateConfig` with sensible defaults. |
+| `make_config(name, count, priority, style, enabled, tags)` | `pub function` | Full constructor for `TemplateConfig`. |
+| `process(label, count, priority)` | `pub function` | Runs processing pipeline, returning an `ok_result` `TemplateResult`. |
+| `process_batch(labels)` | `pub function` | Formats an array of labels in batch, returning an array of strings. |
+| `ok_result(value, message)` | `pub function` | Constructs a successful `TemplateResult` container (`status = 0`). |
+| `error_result(message, errors)` | `pub function` | Constructs a failed `TemplateResult` container (`status = 1`). |
+| `make_stats(total, passed, failed, skipped)` | `pub function` | Constructs a `TemplateStats` metrics record. |
+| `format_summary(cfg)` | `pub function` | Formats summary of a config instance (satisfies `Summarizable`). |
+| `format_description(cfg)` | `pub function` | Formats description of a config instance (satisfies `Describable`). |
+| `format_config(config)` | `pub function` | Multi-field formatter producing descriptive overview of a `TemplateConfig`. |
+| `format_result(result)` | `pub function` | Formats a `TemplateResult` into `[OK]` or `[ERROR]` status line. |
+| `format_stats(stats)` | `pub function` | Formats total checked items and success rate percentage. |
+| `clamp(n, min_val, max_val)` | `pub function` | Clamps an integer value to the closed range `[min_val, max_val]`. |
+| `pluralize(n, singular, plural)` | `pub function` | Pattern-matches count to return singular or plural noun form. |
+| `repeat_string(label, count)` | `pub function` | Repeats a string into an array of `count` items. |
+| `Summarizable` | `pub interface` | Structural contract requiring `summary(self) -> string`. |
+| `Describable` | `pub interface` | Structural contract requiring `describe(self) -> string` and `is_valid(self) -> int`. |
+| `TemplateStatus` | `pub enum` | Lifecycle status codes (`Pending = 0`, `Active = 1`, `Archived = 2`, `Error = 3`). |
+| `TemplatePriority` | `pub enum` | Priority tiers (`Low = 0`, `Normal = 1`, `High = 2`, `Critical = 3`). |
+| `TemplateStyle` | `pub enum` | Presentation styles (`Standard = 0`, `Formal = 1`, `Casual = 2`). |
+| `TemplateConfig` | `pub struct` | Primary configuration model (`name`, `count`, `priority`, `style`, `enabled`, `tags`). |
+| `TemplateConfig.summary()` | `pub method` | Single-line formatted summary (satisfies `Summarizable`). |
+| `TemplateConfig.describe()` | `pub method` | Detailed multi-field description (satisfies `Describable`). |
+| `TemplateConfig.is_valid()` | `pub method` | Validation guard returning 1 if valid, 0 otherwise. |
+| `TemplateConfig.is_enabled()` | `pub method` | Returns 1 if active, 0 if disabled. |
+| `TemplateConfig.with_name(new_name)` | `pub method` | Immutable copy with updated name. |
+| `TemplateConfig.with_priority(new_prio)` | `pub method` | Immutable copy with updated priority tier. |
+| `TemplateResult` | `pub struct` | Operation outcome model (`value`, `status`, `message`, `errors`). |
+| `TemplateResult.is_ok()` | `pub method` | Returns 1 if successful (`status == 0`), 0 otherwise. |
+| `TemplateResult.is_error()` | `pub method` | Returns 1 if error (`status != 0`), 0 otherwise. |
+| `TemplateResult.unwrap_or(fallback)` | `pub method` | Returns message on success, or fallback on error. |
+| `TemplateStats` | `pub struct` | Run statistics model (`total`, `passed`, `failed`, `skipped`). |
+| `TemplateStats.total_checked()` | `pub method` | Sum of passed and failed items count. |
+| `TemplateStats.success_rate()` | `pub method` | Computed percentage string (e.g. `"95%"`). |
 
 > [!TIP]
-> **Internal Helpers & Documentation:** Public symbols are documented with `##` Markdown docstrings, enabling automatic API documentation generation via `alya doc`. Private functions such as `build_salutation` in `src/core/formatter.alya` are not annotated with `pub` and remain encapsulated within their respective modules.
+> **Internal Helpers & Documentation:** Public symbols are documented with `##` Markdown docstrings, enabling automatic API documentation generation via `alya doc`. Private functions such as `build_salutation` and `build_priority_label` in `src/core/formatter.alya` are not annotated with `pub` and remain encapsulated within their respective modules.
 
 ---
 
