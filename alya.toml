@@ -21,3 +21,12 @@ keywords = ["alya", "alya-lang", "package", "{{PACKAGE_NAME}}"]
 # [lint]
 # disabled_rules = []
 # exclude = []
+
+# [fmt]
+# exclude = []
+
+# [test]
+# exclude = []
+
+# [bench]
+# exclude = []
