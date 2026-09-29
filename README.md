@@ -19,6 +19,7 @@
 - 🎯 **Advanced Pattern Matching**: Clean branching with `when` expressions, range matching, and condition guards
 - 🛡️ **Defensive Result Pattern**: Structured error handling and outcome encapsulation with `ok_result` and `error_result`
 - 🧪 **Enterprise Test & Benchmark Suite**: 100% test coverage with standard assertions (`std/test`) and micro-benchmarking (`std/test` bench runner)
+- 🚩 **Feature-Gated API Slices**: Optional capability slices via `[features]` in `alya.toml` (`default = ["extras"]`) and `@cfg(feature = "extras")` gating with a `@cfg(not(feature = "extras"))` fallback stub (see `src/core/extras.alya`)
 
 ---
 
@@ -30,14 +31,15 @@
 ├── .editorconfig           # Uniform formatting rules across IDEs and editors
 ├── .gitignore              # Ecosystem standard ignore filters
 ├── .vscode/                # VS Code workspace settings, DAP launch configurations & tasks
-├── alya.toml               # Package manifest with dependencies and optional [build]
+├── alya.toml               # Package manifest with dependencies, [features] and optional [build]
 ├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
 ├── src/
 │   ├── lib.alya            # Public API facade (pub exports, re-exports & pipeline runners)
 │   ├── types.alya          # Data models, pub enums, pub structs, and struct methods
 │   ├── ffi.alya            # (Optional) Native extern "C" declarations
 │   └── core/               # Subdirectory module hierarchy
-│       └── formatter.alya  # Domain formatting routines, salutation builders & pattern matchers
+│       ├── formatter.alya  # Domain formatting routines, salutation builders & pattern matchers
+│       └── extras.alya     # Feature-gated (`extras`) optional API slice with `@cfg` gating
 ├── examples/
 │   └── demo.alya           # Comprehensive runnable walkthrough of all package capabilities
 ├── tests/
@@ -114,6 +116,7 @@ main()
 | `clamp(n, min_val, max_val)` | `pub function` | Clamps an integer value to the closed range `[min_val, max_val]`. |
 | `pluralize(n, singular, plural)` | `pub function` | Pattern-matches count to return singular or plural noun form. |
 | `repeat_string(label, count)` | `pub function` | Repeats a string into an array of `count` items. |
+| `extra_greeting(name = "World")` | `pub function` (`extras` feature, default-on) | Enthusiastic greeting slice gated by `@cfg(feature = "extras")`; stub throws a descriptive error when the feature is off. |
 | `Summarizable` | `pub interface` | Structural contract requiring `summary(self) -> string`. |
 | `Describable` | `pub interface` | Structural contract requiring `describe(self) -> string` and `is_valid(self) -> int`. |
 | `TemplateStatus` | `pub enum` | Lifecycle status codes (`Pending = 0`, `Active = 1`, `Archived = 2`, `Error = 3`). |
@@ -145,6 +148,13 @@ Run the automated test suite using `alya test`:
 
 ```bash
 alya test
+```
+
+Exercise feature selection (the `extras` slice is default-on):
+
+```bash
+alya test --features extras
+alya test --no-default-features
 ```
 
 Generate static API documentation:

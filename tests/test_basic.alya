@@ -159,6 +159,14 @@ function main()
     runner_assert_str_eq(r, info_name, "{{PACKAGE_NAME}}", "map destructuring extracts key name")
     runner_assert_str_eq(r, info_ver, "0.1.0", "map destructuring extracts key version")
 
+    # ═══════════════════════════════════════════════════════════
+    # 11. Feature-Gated API (`extras`, default-on)
+    # ═══════════════════════════════════════════════════════════
+    @cfg(feature = "extras")
+    let extra_res = pkg::extra_greeting("Alya")
+    @cfg(feature = "extras")
+    runner_assert_str_eq(r, extra_res, "Howdy, Alya!", "pkg::extra_greeting returns extras greeting")
+
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

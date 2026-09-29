@@ -144,6 +144,17 @@ function main()
     let { package: pkg_name, version: pkg_ver } = info
     say "Map package: " + pkg_name
     say "Map version: " + pkg_ver
+    say ""
+
+    # ───────────────────────────────────────────────────────────
+    # 10. Feature-Gated API (`extras`, default-on)
+    # ───────────────────────────────────────────────────────────
+    say "--- 10. Feature-Gated Extras ---"
+    @cfg(feature = "extras")
+    say "Extras greeting: " + pkg::extra_greeting("Developer")
+    @cfg(not(feature = "extras"))
+    say "Extras greeting: (disabled — rebuild with --features extras)"
+    say ""
 
     say ""
     say "Done!"

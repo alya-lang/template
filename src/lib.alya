@@ -6,6 +6,8 @@
 
 import "./types.alya"
 import "./core/formatter.alya"
+@cfg(feature = "extras")
+import "./core/extras.alya"
 
 # ───────────────────────────────────────────────────────────────
 # Primary Facade APIs
@@ -175,3 +177,21 @@ end
 pub function repeat_string(label: string, count: int) -> array
     return repeat_label(label, count)
 end
+
+# ───────────────────────────────────────────────────────────────
+# Feature-Gated API Fallback Stubs
+# ───────────────────────────────────────────────────────────────
+
+# The slim-view stub below keeps the public API surface stable when the
+# `extras` feature is disabled, so callers get a clear descriptive error
+# instead of an undefined reference (param unused by design).
+# alya-lint: disable unused-param
+## Fallback stub for `extra_greeting` when the `extras` feature is disabled.
+##
+## Rebuild with default features (or `--features extras`) for the full
+## implementation in `src/core/extras.alya`.
+@cfg(not(feature = "extras"))
+pub function extra_greeting(name = "World") -> string
+    throw "extras feature is disabled (rebuild with default features or --features extras)"
+end
+# alya-lint: enable unused-param
