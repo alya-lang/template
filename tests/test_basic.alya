@@ -66,7 +66,7 @@ function main()
     let desc = cfg.describe()
     runner_assert_true(r, len(desc) > 0, "cfg.describe() returns non-empty description")
 
-    runner_assert_eq(r, cfg.is_valid(), 1, "cfg.is_valid() returns 1 for valid configuration")
+    runner_assert_eq(r, cfg.is_valid(), true, "cfg.is_valid() returns 1 for valid configuration")
     runner_assert_eq(r, cfg.is_enabled(), 1, "cfg.is_enabled() returns 1")
 
     let updated_name_cfg = cfg.with_name("Contributors")
@@ -81,13 +81,13 @@ function main()
     # 5. Result Container & Methods
     # ═══════════════════════════════════════════════════════════
     let ok_res = pkg::ok_result(42, "Computed successfully")
-    runner_assert_eq(r, ok_res.is_ok(), 1, "ok_res.is_ok() == 1")
-    runner_assert_eq(r, ok_res.is_error(), 0, "ok_res.is_error() == 0")
+    runner_assert_eq(r, ok_res.is_ok(), true, "ok_res.is_ok() == 1")
+    runner_assert_eq(r, ok_res.is_error(), false, "ok_res.is_error() == 0")
     runner_assert_str_eq(r, ok_res.unwrap_or("fallback"), "Computed successfully", "ok_res unwrap_or returns message")
 
     let err_res = pkg::error_result("Failed operation", ["Invalid input", "Timeout"])
-    runner_assert_eq(r, err_res.is_ok(), 0, "err_res.is_ok() == 0")
-    runner_assert_eq(r, err_res.is_error(), 1, "err_res.is_error() == 1")
+    runner_assert_eq(r, err_res.is_ok(), false, "err_res.is_ok() == 0")
+    runner_assert_eq(r, err_res.is_error(), true, "err_res.is_error() == 1")
     runner_assert_str_eq(r, err_res.unwrap_or("fallback"), "fallback", "err_res unwrap_or returns fallback")
     runner_assert_eq(r, len(err_res.errors), 2, "err_res contains 2 error details")
 

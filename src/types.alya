@@ -275,7 +275,7 @@ end
 ## Formatted summary string in the form `"{name} (count: {count}, enabled: {enabled})"`.
 pub function TemplateConfig.summary(self: TemplateConfig) -> string
     let active_str = when self.enabled
-        is 1 => "active"
+        is true => "active"
         else => "disabled"
     end
     return "{self.name} (count: {self.count}, {active_str})"
@@ -305,9 +305,9 @@ end
 ## `1` if valid (non-empty name and count >= 0), `0` otherwise.
 pub function TemplateConfig.is_valid(self: TemplateConfig) -> int
     if self.name == "" or self.count < 0
-        return 0
+        return false
     end
-    return 1
+    return true
 end
 
 ## Returns 1 if this configuration is enabled, 0 otherwise.
@@ -372,9 +372,9 @@ end
 ## `1` when status is `0`, `0` otherwise.
 pub function TemplateResult.is_ok(self: TemplateResult) -> int
     if self.status == 0
-        return 1
+        return true
     end
-    return 0
+    return false
 end
 
 ## Returns 1 if this result represents an error condition.
@@ -386,9 +386,9 @@ end
 ## `1` when status is non-zero, `0` when status is `0`.
 pub function TemplateResult.is_error(self: TemplateResult) -> int
     if self.status != 0
-        return 1
+        return true
     end
-    return 0
+    return false
 end
 
 ## Unwraps the result's message string, or returns a fallback string on error.

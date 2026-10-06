@@ -109,7 +109,7 @@ end
 ## say format_result(r) # "[OK] Completed"
 ## ```
 pub function format_result(result: TemplateResult) -> string
-    if result.is_ok() == 1
+    if result.is_ok() == true
         return "[OK] {result.message}"
     end
     return "[ERROR] {result.message}"
