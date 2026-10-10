@@ -5,7 +5,7 @@ import "std/test"
 import "../src/lib.alya" as pkg
 
 function main()
-    test_suite("{{PACKAGE_NAME}} Test Suite")
+    test_suite(f"{{PACKAGE_NAME}} Test Suite")
     let r = runner_new()
 
     # ═══════════════════════════════════════════════════════════
@@ -154,9 +154,9 @@ function main()
     runner_assert_str_eq(r, t_prefix, "Custom", "tuple destructuring binds string")
     runner_assert_eq(r, t_count, 42, "tuple destructuring binds integer")
 
-    let pkg_info = { "name": "{{PACKAGE_NAME}}", "version": "0.1.0" }
+    let pkg_info = { "name": f"{{PACKAGE_NAME}}", "version": "0.1.0" }
     let { name: info_name, version: info_ver } = pkg_info
-    runner_assert_str_eq(r, info_name, "{{PACKAGE_NAME}}", "map destructuring extracts key name")
+    runner_assert_str_eq(r, info_name, f"{{PACKAGE_NAME}}", "map destructuring extracts key name")
     runner_assert_str_eq(r, info_ver, "0.1.0", "map destructuring extracts key version")
 
     # ═══════════════════════════════════════════════════════════

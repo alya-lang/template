@@ -135,7 +135,7 @@ function format_percent_internal(passed: int, total: int) -> string
         return "0%"
     end
     let pct = (passed * 100) / total
-    return "{pct}%"
+    return f"{pct}%"
 end
 
 # ───────────────────────────────────────────────────────────────
@@ -278,7 +278,7 @@ pub function TemplateConfig.summary(self: TemplateConfig) -> string
         is true => "active"
         else => "disabled"
     end
-    return "{self.name} (count: {self.count}, {active_str})"
+    return f"{self.name} (count: {self.count}, {active_str})"
 end
 
 ## Returns a detailed multi-attribute description of this configuration.
@@ -291,7 +291,7 @@ end
 ## ### Returns
 ## Detailed descriptive string including priority and style codes.
 pub function TemplateConfig.describe(self: TemplateConfig) -> string
-    return "[Config] name={self.name}, count={self.count}, priority={self.priority}, style={self.style}"
+    return f"[Config] name={self.name}, count={self.count}, priority={self.priority}, style={self.style}"
 end
 
 ## Validates whether this configuration conforms to essential operational constraints.

@@ -5,7 +5,7 @@ import "std/test"
 import "../src/lib.alya" as pkg
 
 function main()
-    let runner = bench_runner("{{PACKAGE_NAME}} Micro-Benchmarks")
+    let runner = bench_runner(f"{{PACKAGE_NAME}} Micro-Benchmarks")
 
     # Bench 1: hello() facade function — 100k iterations
     bench_start(runner, 100000)

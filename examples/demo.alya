@@ -4,7 +4,7 @@
 import "../src/lib.alya" as pkg
 
 function main()
-    say "=== {{PACKAGE_NAME}} Package Showcase ==="
+    say f"=== {{PACKAGE_NAME}} Package Showcase ==="
     say ""
 
     # ───────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ function main()
     say "Tuple label: " + label
     say "Tuple count: " + str(count)
 
-    let info = { "package": "{{PACKAGE_NAME}}", "version": "0.1.0" }
+    let info = { "package": f"{{PACKAGE_NAME}}", "version": "0.1.0" }
     let { package: pkg_name, version: pkg_ver } = info
     say "Map package: " + pkg_name
     say "Map version: " + pkg_ver

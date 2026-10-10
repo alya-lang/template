@@ -13,7 +13,7 @@ import "../types.alya"
 # Resolves a salutation prefix based on presentation style variant.
 function build_salutation(prefix: string, style: int) -> string
     return when style
-        is TemplateStyle.Formal => "Greetings and {prefix}"
+        is TemplateStyle.Formal => f"Greetings and {prefix}"
         is TemplateStyle.Casual => "Hey"
         else                    => prefix
     end
@@ -47,7 +47,7 @@ end
 ## let msg = core_format_greeting("Alya") # "Hello, Alya!"
 ## ```
 pub function core_format_greeting(name: string) -> string
-    return "Hello, {name}!"
+    return f"Hello, {name}!"
 end
 
 ## Formats a personalized greeting message using configuration fields and style patterns.
@@ -68,7 +68,7 @@ end
 ## ```
 pub function core_format_custom(config: TemplateConfig) -> string
     let salutation = build_salutation("Hello", config.style)
-    return "{salutation}, {config.name}!"
+    return f"{salutation}, {config.name}!"
 end
 
 ## Builds a multi-field formatted summary string from a `TemplateConfig`.
@@ -92,7 +92,7 @@ pub function format_config(config: TemplateConfig) -> string
         is 1 => "enabled"
         else => "disabled"
     end
-    return "[Config] {config.name} (count: {config.count}, priority: {prio}, status: {state_str})"
+    return f"[Config] {config.name} (count: {config.count}, priority: {prio}, status: {state_str})"
 end
 
 ## Formats a `TemplateResult` into an outcome string.
@@ -110,9 +110,9 @@ end
 ## ```
 pub function format_result(result: TemplateResult) -> string
     if result.is_ok() == true
-        return "[OK] {result.message}"
+        return f"[OK] {result.message}"
     end
-    return "[ERROR] {result.message}"
+    return f"[ERROR] {result.message}"
 end
 
 ## Formats a `TemplateStats` metric record into an overview string.
@@ -131,7 +131,7 @@ end
 pub function format_stats(stats: TemplateStats) -> string
     let checked = stats.total_checked()
     let rate = stats.success_rate()
-    return "[Stats] checked: {checked}, success rate: {rate}"
+    return f"[Stats] checked: {checked}, success rate: {rate}"
 end
 
 ## Formats an array of configuration records into an array of summary strings.
