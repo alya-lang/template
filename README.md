@@ -69,6 +69,22 @@ alya add {{PACKAGE_NAME}} --git https://github.com/alya-lang/{{PACKAGE_NAME}} --
 alya install
 ```
 
+### Package Features
+
+| Feature | Default | Description |
+|:---|:---:|:---|
+| `extras` | ✅ | Optional capability slice (`extra_greeting` in `src/core/extras.alya`, with a fallback stub when disabled). |
+
+```bash
+# Full build (default)
+alya install
+alya test
+
+# Slim build (core only)
+alya install --no-default-features
+alya test --no-default-features
+```
+
 ---
 
 ## 🚀 Quick Start
