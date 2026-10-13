@@ -1,24 +1,32 @@
-## {{PACKAGE_NAME}} Structured Error Model
+## {{PACKAGE_NAME}} Structured Error Model (feature-gated)
 ##
 ## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
 ## Demonstrates modern error handling: structured `throw` values,
 ## `try` / `catch err` / `finally` recovery, and `when`-based error
 ## dispatch. Keep error construction here so `core/pipeline.alya` and
 ## callers share a single error vocabulary.
+## Only compiled when the `strict` feature is active (see `[features]`
+## in `alya.toml`); `src/lib.alya` keeps fallback stubs so callers get a
+## clear descriptive error instead of an undefined reference.
 
 import "../types.alya"
 
 ## Structured error raised for invalid processing input.
 ##
+## Only available when the `strict` feature is active (default-on).
+##
 ## ### Fields
 ## - `field`: Name of the offending input field.
 ## - `message`: Human-readable explanation.
+@cfg(feature = "strict")
 pub struct TemplateError
     field: string,
     message: string
 end
 
 ## Constructs a `TemplateError` for a missing or empty field value.
+##
+## Only available when the `strict` feature is active (default-on).
 ##
 ## ### Parameters
 ## - `field`: Name of the offending input field.
@@ -31,6 +39,7 @@ end
 ## ```alya
 ## throw make_template_error("label", "label must not be empty")
 ## ```
+@cfg(feature = "strict")
 pub function make_template_error(field: string, message: string = "value is required") -> TemplateError
     return TemplateError {
         field: field,
@@ -39,6 +48,8 @@ pub function make_template_error(field: string, message: string = "value is requ
 end
 
 ## Validates a processing label, throwing `TemplateError` on empty input.
+##
+## Only available when the `strict` feature is active (default-on).
 ##
 ## ### Parameters
 ## - `label`: Candidate label string (nullable).
@@ -54,6 +65,7 @@ end
 ##     say f"rejected: {err}"
 ## end
 ## ```
+@cfg(feature = "strict")
 pub function check_label(label: string?) -> string
     let clean = label ?? ""
     if clean == ""

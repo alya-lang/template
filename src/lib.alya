@@ -6,6 +6,7 @@
 
 import "./types.alya"
 import "./core/formatter.alya"
+@cfg(feature = "strict")
 import "./core/errors.alya"
 import "./core/pipeline.alya"
 @cfg(feature = "extras")
@@ -98,6 +99,7 @@ end
 
 ## Runs the strict pipeline, throwing `TemplateError` on empty input.
 ##
+## Only available when the `strict` feature is active (default-on).
 ## Thin facade over `pipeline_strict_process`: empty or null labels raise a
 ## structured error instead of falling back to `"World"`. Narrow it with an
 ## inline `when` at your `catch` site (see `src/core/errors.alya`).
@@ -122,12 +124,14 @@ end
 ##     say diag
 ## end
 ## ```
+@cfg(feature = "strict")
 pub function process_strict(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
     return pipeline_strict_process(label, count, priority)
 end
 
 ## Runs the strict pipeline, converting errors into failed results.
 ##
+## Only available when the `strict` feature is active (default-on).
 ## Thin facade over `try_pipeline_process`: never throws, returning an
 ## `error_result` for invalid input instead.
 ##
@@ -144,6 +148,7 @@ end
 ## let res = try_process("")
 ## say res.is_error() # true
 ## ```
+@cfg(feature = "strict")
 pub function try_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
     return try_pipeline_process(label, count, priority)
 end
@@ -242,5 +247,28 @@ end
 @cfg(not(feature = "extras"))
 pub function extra_greeting(name = "World") -> string
     throw "extras feature is disabled (rebuild with default features or --features extras)"
+end
+# alya-lint: enable unused-param
+
+# The slim-view stubs below keep the public API surface stable when the
+# `strict` feature is disabled (params unused by design).
+# alya-lint: disable unused-param
+## Fallback stub for `process_strict` when the `strict` feature is disabled.
+##
+## Rebuild with default features (or `--features strict`) for the full
+## implementation in `src/core/pipeline.alya`.
+@cfg(not(feature = "strict"))
+pub function process_strict(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
+    throw "strict feature is disabled (rebuild with default features or --features strict)"
+end
+
+## Fallback stub for `try_process` when the `strict` feature is disabled.
+##
+## Preserves the never-throws contract by returning a failed result carrying
+## the descriptive error. Rebuild with default features (or
+## `--features strict`) for the full implementation in `src/core/pipeline.alya`.
+@cfg(not(feature = "strict"))
+pub function try_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
+    return error_result("strict feature is disabled (rebuild with default features or --features strict)", ["strict feature is disabled"])
 end
 # alya-lint: enable unused-param

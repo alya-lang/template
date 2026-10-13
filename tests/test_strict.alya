@@ -1,0 +1,64 @@
+## Test suite for {{PACKAGE_NAME}} structured errors & recovery (`strict` feature)
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+##
+## Demonstrates per-feature test splitting for complex packages: each
+## feature slice gets its own `tests/test_<area>.alya` file with a real
+## suite under `@cfg(feature = "...")` and a skip stub under
+## `@cfg(not(feature = "..."))`, so every feature combination stays green.
+
+import "std/test"
+import "../src/lib.alya" as pkg
+
+@cfg(feature = "strict")
+function main()
+    test_suite(f"{{PACKAGE_NAME}} Strict Recovery Tests")
+    let r = runner_new()
+
+    # ═══════════════════════════════════════════════════════════
+    # 1. Strict Pipeline Success Path
+    # ═══════════════════════════════════════════════════════════
+    let strict_res = pkg::process_strict("Alice")
+    runner_assert_eq(r, strict_res.is_ok(), true, "pkg::process_strict returns success on valid label")
+
+    # ═══════════════════════════════════════════════════════════
+    # 2. Structured Throw & Catch-Site Narrowing
+    # ═══════════════════════════════════════════════════════════
+    let threw = false
+    try
+        pkg::process_strict("")
+    catch err
+        threw = true
+        let diag = when err
+            is pkg::TemplateError => f"TemplateError(field={err.field}): {err.message}"
+            else => f"error: {err}"
+        end
+        runner_assert_str_eq(r, diag, "TemplateError(field=label): label must not be empty", "caught TemplateError renders field context")
+    end
+    runner_assert_true(r, threw, "pkg::process_strict throws TemplateError on empty label")
+
+    # ═══════════════════════════════════════════════════════════
+    # 3. Error-to-Result Recovery (`try_process`)
+    # ═══════════════════════════════════════════════════════════
+    let recovered = pkg::try_process("")
+    runner_assert_eq(r, recovered.is_error(), true, "pkg::try_process converts empty label to failed result")
+    runner_assert_str_eq(r, recovered.message, "TemplateError(field=label): label must not be empty", "recovered message carries field context")
+    let recovered_ok = pkg::try_process("Bob")
+    runner_assert_eq(r, recovered_ok.is_ok(), true, "pkg::try_process returns success on valid label")
+
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+@cfg(not(feature = "strict"))
+function main()
+    test_suite(f"{{PACKAGE_NAME}} Strict Recovery Tests (skipped without strict feature)")
+    let r = runner_new()
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+main()

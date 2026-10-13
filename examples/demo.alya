@@ -3,6 +3,30 @@
 
 import "../src/lib.alya" as pkg
 
+# Feature-gated walkthrough step: full recovery demo when `strict` is
+# active, descriptive placeholder otherwise (same dual-definition pattern
+# as `tests/test_strict.alya`).
+@cfg(feature = "strict")
+function show_strict_recovery()
+    try
+        let bad = pkg::process_strict("")
+        say "Unexpected success: " + bad.message
+    catch err
+        let diag = when err
+            is pkg::TemplateError => f"TemplateError(field={err.field}): {err.message}"
+            else => f"error: {err}"
+        end
+        say "Caught: " + diag
+    finally
+        say "Cleanup guaranteed."
+    end
+end
+
+@cfg(not(feature = "strict"))
+function show_strict_recovery()
+    say "Strict recovery: (disabled — rebuild with --features strict)"
+end
+
 function main()
     say f"=== {{PACKAGE_NAME}} Package Showcase ==="
     say ""
@@ -160,18 +184,7 @@ function main()
     # 11. Structured Errors & Recovery
     # ───────────────────────────────────────────────────────────
     say "--- 11. Errors & Recovery ---"
-    try
-        let bad = pkg::process_strict("")
-        say "Unexpected success: " + bad.message
-    catch err
-        let diag = when err
-            is pkg::TemplateError => f"TemplateError(field={err.field}): {err.message}"
-            else => f"error: {err}"
-        end
-        say "Caught: " + diag
-    finally
-        say "Cleanup guaranteed."
-    end
+    show_strict_recovery()
     let safe_res = pkg::try_process("")
     say "Recovered is_error: " + str(safe_res.is_error())
     say ""

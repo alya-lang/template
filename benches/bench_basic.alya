@@ -4,6 +4,24 @@
 import "std/test"
 import "../src/lib.alya" as pkg
 
+# Feature-gated benchmark step: measures `try_process` when `strict` is
+# active, no-op otherwise (same dual-definition pattern as
+# `tests/test_strict.alya`).
+@cfg(feature = "strict")
+function bench_try_process(runner)
+    bench_start(runner, 100000)
+    let t = 0
+    while t < 100000
+        pkg::try_process("bench")
+        t += 1
+    end
+    bench_stop(runner, "try_process() valid 100k calls")
+end
+
+@cfg(not(feature = "strict"))
+function bench_try_process(runner)
+end
+
 function main()
     let runner = bench_runner(f"{{PACKAGE_NAME}} Micro-Benchmarks")
 
@@ -73,14 +91,8 @@ function main()
     end
     bench_stop(runner, "repeat_string() 10k calls")
 
-    # Bench 8: try_process() valid call — 100k iterations
-    bench_start(runner, 100000)
-    let t = 0
-    while t < 100000
-        pkg::try_process("bench")
-        t += 1
-    end
-    bench_stop(runner, "try_process() valid 100k calls")
+    # Bench 8: try_process() valid call — 100k iterations (`strict` feature)
+    bench_try_process(runner)
 
     bench_summary(runner)
 end

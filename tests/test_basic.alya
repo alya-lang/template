@@ -168,43 +168,7 @@ function main()
     runner_assert_str_eq(r, extra_res, "Howdy, Alya!", "pkg::extra_greeting returns extras greeting")
 
     # ═══════════════════════════════════════════════════════════
-    # 12. Structured Errors & Recovery (errors + pipeline)
-    # ═══════════════════════════════════════════════════════════
-    let strict_res = pkg::process_strict("Alice")
-    runner_assert_eq(r, strict_res.is_ok(), true, "pkg::process_strict returns success on valid label")
-
-    let threw = false
-    try
-        pkg::process_strict("")
-    catch err
-        threw = true
-        let diag = when err
-            is pkg::TemplateError => f"TemplateError(field={err.field}): {err.message}"
-            else => f"error: {err}"
-        end
-        runner_assert_str_eq(r, diag, "TemplateError(field=label): label must not be empty", "caught TemplateError renders field context")
-    end
-    runner_assert_true(r, threw, "pkg::process_strict throws TemplateError on empty label")
-
-    let recovered = pkg::try_process("")
-    runner_assert_eq(r, recovered.is_error(), true, "pkg::try_process converts empty label to failed result")
-    runner_assert_str_eq(r, recovered.message, "TemplateError(field=label): label must not be empty", "recovered message carries field context")
-    let recovered_ok = pkg::try_process("Bob")
-    runner_assert_eq(r, recovered_ok.is_ok(), true, "pkg::try_process returns success on valid label")
-
-    # `finally` runs on both success and error paths.
-    let finally_ran = false
-    try
-        throw "boom"
-    catch err
-        runner_assert_str_eq(r, err, "boom", "caught string round-trips")
-    finally
-        finally_ran = true
-    end
-    runner_assert_true(r, finally_ran, "finally runs after catch")
-
-    # ═══════════════════════════════════════════════════════════
-    # 13. Null Safety Operators (??) & Generics (pipeline_first)
+    # 12. Null Safety Operators (??) & Generics (pipeline_first)
     # ═══════════════════════════════════════════════════════════
     let maybe_name: string? = null
     runner_assert_str_eq(r, pkg::sanitize_name(maybe_name), "World", "sanitize_name(null) falls back to World")
@@ -215,8 +179,18 @@ function main()
     runner_assert_str_eq(r, first_miss, "empty", "pipeline_first(null/empty) coalesces to fallback")
 
     # ═══════════════════════════════════════════════════════════
-    # 14. Deferred Cleanup Ordering
+    # 13. Deferred Cleanup Ordering & `finally`
     # ═══════════════════════════════════════════════════════════
+    # `finally` runs on both success and error paths.
+    let finally_ran = false
+    try
+        throw "boom"
+    catch err
+        runner_assert_str_eq(r, err, "boom", "caught string round-trips")
+    finally
+        finally_ran = true
+    end
+    runner_assert_true(r, finally_ran, "finally runs after catch")
     let log = []
     function scoped_work()
         defer log.push("cleanup")

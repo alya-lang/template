@@ -10,6 +10,7 @@
 
 import "../types.alya"
 import "./formatter.alya"
+@cfg(feature = "strict")
 import "./errors.alya"
 
 ## Runs the single-label processing pipeline.
@@ -38,6 +39,7 @@ end
 
 ## Runs the strict processing pipeline, throwing on invalid input.
 ##
+## Only available when the `strict` feature is active (default-on).
 ## Validates the label with `check_label` (throwing a structured
 ## `TemplateError` on empty input) before formatting.
 ##
@@ -54,9 +56,14 @@ end
 ## try
 ##     let res = pipeline_strict_process("Alice")
 ## catch err
-##     say format_caught_error(err)
+##     let diag = when err
+##         is TemplateError => f"TemplateError(field={err.field}): {err.message}"
+##         else => f"error: {err}"
+##     end
+##     say diag
 ## end
 ## ```
+@cfg(feature = "strict")
 pub function pipeline_strict_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
     let clean = check_label(label)
     let cfg = make_config(clean, count, priority)
@@ -65,6 +72,7 @@ end
 
 ## Runs the strict pipeline with explicit error recovery.
 ##
+## Only available when the `strict` feature is active (default-on).
 ## Wraps `pipeline_strict_process` in `try` / `catch err` and converts
 ## a thrown `TemplateError` into a failed `TemplateResult` instead
 ## of propagating (see `examples/demo.alya` for `finally` cleanup).
@@ -86,6 +94,7 @@ end
 ## let res = try_pipeline_process("", 1, TemplatePriority.Normal)
 ## say res.is_error() # true
 ## ```
+@cfg(feature = "strict")
 pub function try_pipeline_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
     let out = error_result("unreachable", [])
     try

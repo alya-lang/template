@@ -77,6 +77,7 @@ alya install
 | Feature | Default | Description |
 |:---|:---:|:---|
 | `extras` | ✅ | Optional capability slice (`extra_greeting` in `src/core/extras.alya`, with a fallback stub when disabled). |
+| `strict` | ✅ | Structured-error recovery slice (`TemplateError`, `check_label` in `src/core/errors.alya` plus `process_strict`/`try_process` in `src/core/pipeline.alya`, with fallback stubs when disabled; per-feature tests live in `tests/test_strict.alya`). |
 
 ```bash
 # Full build (default)
@@ -128,15 +129,15 @@ main()
 | `make_config(name, count, priority, style, enabled, tags)` | `pub function` | Full constructor for `TemplateConfig`. |
 | `process(label, count, priority)` | `pub function` | Runs processing pipeline, returning an `ok_result` `TemplateResult`. |
 | `process_batch(labels)` | `pub function` | Formats an array of labels in batch, returning an array of strings. |
-| `process_strict(label, count, priority)` | `pub function` | Runs strict pipeline, throwing `TemplateError` on empty input. |
-| `try_process(label, count, priority)` | `pub function` | Runs strict pipeline, converting errors into failed results. |
+| `process_strict(label, count, priority)` | `pub function` (`strict` feature, default-on) | Runs strict pipeline, throwing `TemplateError` on empty input. |
+| `try_process(label, count, priority)` | `pub function` (`strict` feature, default-on) | Runs strict pipeline, converting errors into failed results. |
 | `pipeline_process(label, count, priority)` | `pub function` | Engine behind `process` (`src/core/pipeline.alya`). |
-| `pipeline_strict_process(label, count, priority)` | `pub function` | Engine behind `process_strict` (throws `TemplateError`). |
-| `try_pipeline_process(label, count, priority)` | `pub function` | Engine behind `try_process` (`try` / `catch` recovery). |
+| `pipeline_strict_process(label, count, priority)` | `pub function` (`strict` feature, default-on) | Engine behind `process_strict` (throws `TemplateError`). |
+| `try_pipeline_process(label, count, priority)` | `pub function` (`strict` feature, default-on) | Engine behind `try_process` (`try` / `catch` recovery). |
 | `pipeline_process_batch(labels)` | `pub function` | Engine behind `process_batch` (indexed `for i, lbl` loop). |
 | `pipeline_first(items)` | `pub function` | Generic `function pipeline_first[T]` returning first element or null. |
-| `make_template_error(field, message)` | `pub function` | Constructs a `TemplateError` for invalid input. |
-| `check_label(label)` | `pub function` | Validates a label, throwing `TemplateError` on empty input. |
+| `make_template_error(field, message)` | `pub function` (`strict` feature, default-on) | Constructs a `TemplateError` for invalid input. |
+| `check_label(label)` | `pub function` (`strict` feature, default-on) | Validates a label, throwing `TemplateError` on empty input. |
 | `ok_result(value, message)` | `pub function` | Constructs a successful `TemplateResult` container (`status = 0`). |
 | `error_result(message, errors)` | `pub function` | Constructs a failed `TemplateResult` container (`status = 1`). |
 | `make_stats(total, passed, failed, skipped)` | `pub function` | Constructs a `TemplateStats` metrics record. |
@@ -168,7 +169,7 @@ main()
 | `TemplateStats` | `pub struct` | Run statistics model (`total`, `passed`, `failed`, `skipped`). |
 | `TemplateStats.total_checked()` | `pub method` | Sum of passed and failed items count. |
 | `TemplateStats.success_rate()` | `pub method` | Computed percentage string (e.g. `"95%"`). |
-| `TemplateError` | `pub struct` | Structured validation error (`field`, `message`); narrow with `when err is TemplateError` at the catch site. |
+| `TemplateError` | `pub struct` (`strict` feature, default-on) | Structured validation error (`field`, `message`); narrow with `when err is TemplateError` at the catch site. |
 | `DEFAULT_COUNT` | `pub const` | Default repetition limit applied by factory constructors. |
 
 > [!TIP]
@@ -184,11 +185,45 @@ Run the automated test suite using `alya test`:
 alya test
 ```
 
-Exercise feature selection (the `extras` slice is default-on):
+Exercise feature selection (the `extras` and `strict` slices are default-on):
 
 ```bash
 alya test --features extras
+alya test --features strict
 alya test --no-default-features
+```
+
+### 🧩 Splitting Test Suites (Complex Packages)
+
+When the suite outgrows one file, split it per area or feature slice
+(`tests/test_basic.alya`, `tests/test_strict.alya`, ...). Each
+feature-gated file carries two `main()` definitions: the real suite under
+`@cfg(feature = "...")` and a skip stub under `@cfg(not(feature = "..."))`,
+so every feature combination stays green:
+
+```alya
+@cfg(feature = "strict")
+function main()
+    test_suite("Strict Recovery Tests")
+    let r = runner_new()
+    # ... gated assertions ...
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+@cfg(not(feature = "strict"))
+function main()
+    test_suite("Strict Recovery Tests (skipped without strict feature)")
+    let r = runner_new()
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+main()
 ```
 
 Generate static API documentation:
