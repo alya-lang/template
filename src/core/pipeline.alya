@@ -1,0 +1,150 @@
+## {{PACKAGE_NAME}} Processing Pipeline Engine
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Owns the multi-step processing workflow: validation, formatting, and
+## batch orchestration. `src/lib.alya` re-exports thin wrappers over these
+## engine functions, so complex packages can grow this directory into
+## per-domain subfolders (`router/`, `server/`, `widgets/`, ...) without
+## touching the public facade shape.
+## Headless-testable: no I/O here, only pure data transformation.
+
+import "../types.alya"
+import "./formatter.alya"
+import "./errors.alya"
+
+## Runs the single-label processing pipeline.
+##
+## Sanitizes the label (null or empty becomes `"World"`), builds a
+## `TemplateConfig`, and returns a successful `TemplateResult`.
+##
+## ### Parameters
+## - `label`: Target entity label string. Defaults to `"World"`.
+## - `count`: Counter or repetition count. Defaults to `1`.
+## - `priority`: Priority tier. Defaults to `TemplatePriority.Normal`.
+##
+## ### Returns
+## A successful `TemplateResult` containing the formatted summary string.
+##
+## ### Examples
+## ```alya
+## let res = pipeline_process("Alice", 3, TemplatePriority.High)
+## say res.message # "OK"
+## ```
+pub function pipeline_process(label = "World", count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
+    let cfg = make_config(label, count, priority)
+    let formatted = format_config(cfg)
+    return ok_result(formatted, "OK")
+end
+
+## Runs the strict processing pipeline, throwing on invalid input.
+##
+## Validates the label with `check_label` (throwing a structured
+## `TemplateError` on empty input) before formatting.
+##
+## ### Parameters
+## - `label`: Candidate label string (nullable).
+## - `count`: Counter or repetition count. Defaults to `1`.
+## - `priority`: Priority tier. Defaults to `TemplatePriority.Normal`.
+##
+## ### Returns
+## A successful `TemplateResult`.
+##
+## ### Examples
+## ```alya
+## try
+##     let res = pipeline_strict_process("Alice")
+## catch err
+##     say format_caught_error(err)
+## end
+## ```
+pub function pipeline_strict_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
+    let clean = check_label(label)
+    let cfg = make_config(clean, count, priority)
+    return ok_result(format_config(cfg), "OK")
+end
+
+## Runs the strict pipeline with explicit error recovery.
+##
+## Wraps `pipeline_strict_process` in `try` / `catch err` and converts
+## a thrown `TemplateError` into a failed `TemplateResult` instead
+## of propagating (see `examples/demo.alya` for `finally` cleanup).
+##
+## NOTE: the result is assigned inside `try` and returned after the block
+## instead of returning directly from `try`/`catch`, so repeated calls in
+## loops keep handler state balanced.
+##
+## ### Parameters
+## - `label`: Target entity label string (nullable).
+## - `count`: Counter or repetition count. Defaults to `1`.
+## - `priority`: Priority tier. Defaults to `TemplatePriority.Normal`.
+##
+## ### Returns
+## Successful result on valid input, failed result otherwise.
+##
+## ### Examples
+## ```alya
+## let res = try_pipeline_process("", 1, TemplatePriority.Normal)
+## say res.is_error() # true
+## ```
+pub function try_pipeline_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
+    let out = error_result("unreachable", [])
+    try
+        out = pipeline_strict_process(label, count, priority)
+    catch err
+        let diag = when err
+            is TemplateError => f"TemplateError(field={err.field}): {err.message}"
+            else => f"error: {err}"
+        end
+        out = error_result(diag, [diag])
+    end
+    return out
+end
+
+## Formats an array of labels in batch.
+##
+## Handles null input safely by returning an empty array. Demonstrates the
+## indexed loop form (`for i, lbl in labels`).
+##
+## ### Parameters
+## - `labels`: Array of label strings to process (or null).
+##
+## ### Returns
+## An array of formatted result strings.
+##
+## ### Examples
+## ```alya
+## let results = pipeline_process_batch(["Alpha", "Beta"])
+## ```
+pub function pipeline_process_batch(labels) -> array
+    if labels is null
+        return []
+    end
+
+    let configs = []
+    for i, lbl in labels
+        configs.push(make_config(lbl, i + 1, TemplatePriority.Normal))
+    end
+    return format_batch(configs)
+end
+
+## Returns the first element of an array, or null when empty.
+##
+## Generic helper demonstrating `function name[T]` type parameters with a
+## nullable element return (`T?`).
+##
+## ### Parameters
+## - `items`: Array of any element type (or null).
+##
+## ### Returns
+## First element, or null when the array is null or empty.
+##
+## ### Examples
+## ```alya
+## let first = pipeline_first(["a", "b"]) ?? "empty"
+## ```
+pub function pipeline_first[T](items: T[]) -> T?
+    if items is null or len(items) == 0
+        return null
+    end
+    return items[0]
+end

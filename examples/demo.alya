@@ -156,6 +156,36 @@ function main()
     say "Extras greeting: (disabled — rebuild with --features extras)"
     say ""
 
+    # ───────────────────────────────────────────────────────────
+    # 11. Structured Errors & Recovery
+    # ───────────────────────────────────────────────────────────
+    say "--- 11. Errors & Recovery ---"
+    try
+        let bad = pkg::process_strict("")
+        say "Unexpected success: " + bad.message
+    catch err
+        let diag = when err
+            is pkg::TemplateError => f"TemplateError(field={err.field}): {err.message}"
+            else => f"error: {err}"
+        end
+        say "Caught: " + diag
+    finally
+        say "Cleanup guaranteed."
+    end
+    let safe_res = pkg::try_process("")
+    say "Recovered is_error: " + str(safe_res.is_error())
+    say ""
+
+    # ───────────────────────────────────────────────────────────
+    # 12. Null Safety & Generics
+    # ───────────────────────────────────────────────────────────
+    say "--- 12. Null Safety & Generics ---"
+    let nick: string? = null
+    say "Nickname fallback: " + pkg::sanitize_name(nick)
+    let head = pkg::pipeline_first(["Alpha", "Beta"]) ?? "empty"
+    say "First element:     " + head
+    say ""
+
     say ""
     say "Done!"
 end

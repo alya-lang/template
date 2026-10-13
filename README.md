@@ -12,14 +12,15 @@
 ## 🌟 Features
 
 - ⚡ **Lightweight & High Performance**: Minimal memory overhead, zero runtime bloat, and fast native execution
-- 🧩 **Modular Architecture**: Layered multi-module design featuring a clean public facade (`src/lib.alya`), rich data models (`src/types.alya`), and encapsulated core formatters (`src/core/formatter.alya`)
+- 🧩 **Modular Architecture**: Layered multi-module design featuring a clean public facade (`src/lib.alya`), rich data models (`src/types.alya`), a processing engine (`src/core/pipeline.alya`), a structured error model (`src/core/errors.alya`), and encapsulated core formatters (`src/core/formatter.alya`)
 - 🔒 **Public/Private Visibility (`pub`)**: Fine-grained export control with `pub` for public functions, structs, and enums, keeping internal helper functions private and encapsulated
 - 🎭 **Structural Duck Typing & Interfaces**: Dynamic interface dispatch (`Summarizable`, `Describable`) without brittle inheritance hierarchies
-- 📦 **Rich Domain Models & Enums**: Idiomatic `enum` types (`TemplateStatus`, `TemplatePriority`, `TemplateStyle`) and typed data containers (`TemplateConfig`, `TemplateResult`, `TemplateStats`)
+- 📦 **Rich Domain Models & Enums**: Idiomatic `enum` types (`TemplateStatus`, `TemplatePriority`, `TemplateStyle`) and typed data containers (`TemplateConfig`, `TemplateResult`, `TemplateStats`, `TemplateError`)
 - 🎯 **Advanced Pattern Matching**: Clean branching with `when` expressions, range matching, and condition guards
-- 🛡️ **Defensive Result Pattern**: Structured error handling and outcome encapsulation with `ok_result` and `error_result`
+- 🛡️ **Defensive Result Pattern**: Structured error handling with `throw` / `try` / `catch err` / `finally`, `when`-based error dispatch, and outcome encapsulation with `ok_result` and `error_result`
 - 🧪 **Enterprise Test & Benchmark Suite**: 100% test coverage with standard assertions (`std/test`) and micro-benchmarking (`std/test` bench runner)
 - 🚩 **Feature-Gated API Slices**: Optional capability slices via `[features]` in `alya.toml` (`default = ["extras"]`) and `@cfg(feature = "extras")` gating with a `@cfg(not(feature = "extras"))` fallback stub (see `src/core/extras.alya`)
+- 🧬 **Modern Type System Showcase**: Nullable types (`string?`), null coalescing (`??`), generic helpers (`pipeline_first[T]`), `defer` cleanup, indexed loops (`for i, x in arr`), and `bool` predicates
 
 ---
 
@@ -34,11 +35,13 @@
 ├── alya.toml               # Package manifest with dependencies, [features] and optional [build]
 ├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
 ├── src/
-│   ├── lib.alya            # Public API facade (pub exports, re-exports & pipeline runners)
-│   ├── types.alya          # Data models, pub enums, pub structs, and struct methods
+│   ├── lib.alya            # Public API facade (thin pub wrappers delegating to core/* engines)
+│   ├── types.alya          # Data models, pub enums, pub structs, struct methods & pub consts
 │   ├── ffi.alya            # (Optional) Native extern "C" declarations
-│   └── core/               # Subdirectory module hierarchy
+│   └── core/               # Subdirectory module hierarchy (grow into <domain>/ for complex packages)
 │       ├── formatter.alya  # Domain formatting routines, salutation builders & pattern matchers
+│       ├── pipeline.alya   # Processing engine: pipeline, strict/try variants, batching, generics
+│       ├── errors.alya     # Structured TemplateError model, validation & catch-site narrowing guide
 │       └── extras.alya     # Feature-gated (`extras`) optional API slice with `@cfg` gating
 ├── examples/
 │   └── demo.alya           # Comprehensive runnable walkthrough of all package capabilities
@@ -105,6 +108,10 @@ function main()
     # 3. Processing pipeline returning Result model
     let res = pkg::process("Analytics", 3, pkg::TemplatePriority.Critical)
     say f"Outcome:   {res.message}"
+
+    # 4. Strict pipeline with structured error recovery
+    let safe = pkg::try_process("")
+    say f"Recovered: {safe.is_error()}"
 end
 
 main()
@@ -121,6 +128,15 @@ main()
 | `make_config(name, count, priority, style, enabled, tags)` | `pub function` | Full constructor for `TemplateConfig`. |
 | `process(label, count, priority)` | `pub function` | Runs processing pipeline, returning an `ok_result` `TemplateResult`. |
 | `process_batch(labels)` | `pub function` | Formats an array of labels in batch, returning an array of strings. |
+| `process_strict(label, count, priority)` | `pub function` | Runs strict pipeline, throwing `TemplateError` on empty input. |
+| `try_process(label, count, priority)` | `pub function` | Runs strict pipeline, converting errors into failed results. |
+| `pipeline_process(label, count, priority)` | `pub function` | Engine behind `process` (`src/core/pipeline.alya`). |
+| `pipeline_strict_process(label, count, priority)` | `pub function` | Engine behind `process_strict` (throws `TemplateError`). |
+| `try_pipeline_process(label, count, priority)` | `pub function` | Engine behind `try_process` (`try` / `catch` recovery). |
+| `pipeline_process_batch(labels)` | `pub function` | Engine behind `process_batch` (indexed `for i, lbl` loop). |
+| `pipeline_first(items)` | `pub function` | Generic `function pipeline_first[T]` returning first element or null. |
+| `make_template_error(field, message)` | `pub function` | Constructs a `TemplateError` for invalid input. |
+| `check_label(label)` | `pub function` | Validates a label, throwing `TemplateError` on empty input. |
 | `ok_result(value, message)` | `pub function` | Constructs a successful `TemplateResult` container (`status = 0`). |
 | `error_result(message, errors)` | `pub function` | Constructs a failed `TemplateResult` container (`status = 1`). |
 | `make_stats(total, passed, failed, skipped)` | `pub function` | Constructs a `TemplateStats` metrics record. |
@@ -134,24 +150,26 @@ main()
 | `repeat_string(label, count)` | `pub function` | Repeats a string into an array of `count` items. |
 | `extra_greeting(name = "World")` | `pub function` (`extras` feature, default-on) | Enthusiastic greeting slice gated by `@cfg(feature = "extras")`; stub throws a descriptive error when the feature is off. |
 | `Summarizable` | `pub interface` | Structural contract requiring `summary(self) -> string`. |
-| `Describable` | `pub interface` | Structural contract requiring `describe(self) -> string` and `is_valid(self) -> int`. |
+| `Describable` | `pub interface` | Structural contract requiring `describe(self) -> string` and `is_valid(self) -> bool`. |
 | `TemplateStatus` | `pub enum` | Lifecycle status codes (`Pending = 0`, `Active = 1`, `Archived = 2`, `Error = 3`). |
 | `TemplatePriority` | `pub enum` | Priority tiers (`Low = 0`, `Normal = 1`, `High = 2`, `Critical = 3`). |
 | `TemplateStyle` | `pub enum` | Presentation styles (`Standard = 0`, `Formal = 1`, `Casual = 2`). |
 | `TemplateConfig` | `pub struct` | Primary configuration model (`name`, `count`, `priority`, `style`, `enabled`, `tags`). |
 | `TemplateConfig.summary()` | `pub method` | Single-line formatted summary (satisfies `Summarizable`). |
 | `TemplateConfig.describe()` | `pub method` | Detailed multi-field description (satisfies `Describable`). |
-| `TemplateConfig.is_valid()` | `pub method` | Validation guard returning 1 if valid, 0 otherwise. |
-| `TemplateConfig.is_enabled()` | `pub method` | Returns 1 if active, 0 if disabled. |
+| `TemplateConfig.is_valid()` | `pub method` | Validation guard returning true if valid, false otherwise. |
+| `TemplateConfig.is_enabled()` | `pub method` | Returns true if active, false if disabled. |
 | `TemplateConfig.with_name(new_name)` | `pub method` | Immutable copy with updated name. |
 | `TemplateConfig.with_priority(new_prio)` | `pub method` | Immutable copy with updated priority tier. |
 | `TemplateResult` | `pub struct` | Operation outcome model (`value`, `status`, `message`, `errors`). |
-| `TemplateResult.is_ok()` | `pub method` | Returns 1 if successful (`status == 0`), 0 otherwise. |
-| `TemplateResult.is_error()` | `pub method` | Returns 1 if error (`status != 0`), 0 otherwise. |
+| `TemplateResult.is_ok()` | `pub method` | Returns true if successful (`status == 0`), false otherwise. |
+| `TemplateResult.is_error()` | `pub method` | Returns true if error (`status != 0`), false otherwise. |
 | `TemplateResult.unwrap_or(fallback)` | `pub method` | Returns message on success, or fallback on error. |
 | `TemplateStats` | `pub struct` | Run statistics model (`total`, `passed`, `failed`, `skipped`). |
 | `TemplateStats.total_checked()` | `pub method` | Sum of passed and failed items count. |
 | `TemplateStats.success_rate()` | `pub method` | Computed percentage string (e.g. `"95%"`). |
+| `TemplateError` | `pub struct` | Structured validation error (`field`, `message`); narrow with `when err is TemplateError` at the catch site. |
+| `DEFAULT_COUNT` | `pub const` | Default repetition limit applied by factory constructors. |
 
 > [!TIP]
 > **Internal Helpers & Documentation:** Public symbols are documented with `##` Markdown docstrings, enabling automatic API documentation generation via `alya doc`. Private functions such as `build_salutation` and `build_priority_label` in `src/core/formatter.alya` are not annotated with `pub` and remain encapsulated within their respective modules.

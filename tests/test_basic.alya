@@ -48,13 +48,13 @@ function main()
     runner_assert_eq(r, cfg.count, 5, "cfg.count is initialized correctly")
     runner_assert_eq(r, cfg.priority, 2, "cfg.priority is initialized to High (2)")
     runner_assert_eq(r, cfg.style, 1, "cfg.style is initialized to Formal (1)")
-    runner_assert_eq(r, cfg.enabled, 1, "cfg.enabled defaults to 1")
+    runner_assert_eq(r, cfg.enabled, true, "cfg.enabled defaults to true")
 
-    let full_cfg = pkg::make_config("Full", 10, pkg::TemplatePriority.Critical, pkg::TemplateStyle.Casual, 0, ["tag1", "tag2"])
+    let full_cfg = pkg::make_config("Full", 10, pkg::TemplatePriority.Critical, pkg::TemplateStyle.Casual, false, ["tag1", "tag2"])
     runner_assert_str_eq(r, full_cfg.name, "Full", "full_cfg.name is correct")
     runner_assert_eq(r, full_cfg.count, 10, "full_cfg.count is correct")
     runner_assert_eq(r, full_cfg.priority, 3, "full_cfg.priority is Critical (3)")
-    runner_assert_eq(r, full_cfg.enabled, 0, "full_cfg.enabled is 0")
+    runner_assert_eq(r, full_cfg.enabled, false, "full_cfg.enabled is false")
     runner_assert_eq(r, len(full_cfg.tags), 2, "full_cfg.tags has 2 elements")
 
     # ═══════════════════════════════════════════════════════════
@@ -66,8 +66,8 @@ function main()
     let desc = cfg.describe()
     runner_assert_true(r, len(desc) > 0, "cfg.describe() returns non-empty description")
 
-    runner_assert_eq(r, cfg.is_valid(), true, "cfg.is_valid() returns 1 for valid configuration")
-    runner_assert_eq(r, cfg.is_enabled(), 1, "cfg.is_enabled() returns 1")
+    runner_assert_eq(r, cfg.is_valid(), true, "cfg.is_valid() returns true for valid configuration")
+    runner_assert_eq(r, cfg.is_enabled(), true, "cfg.is_enabled() returns true")
 
     let updated_name_cfg = cfg.with_name("Contributors")
     runner_assert_str_eq(r, updated_name_cfg.name, "Contributors", "with_name updates name")
@@ -81,13 +81,13 @@ function main()
     # 5. Result Container & Methods
     # ═══════════════════════════════════════════════════════════
     let ok_res = pkg::ok_result(42, "Computed successfully")
-    runner_assert_eq(r, ok_res.is_ok(), true, "ok_res.is_ok() == 1")
-    runner_assert_eq(r, ok_res.is_error(), false, "ok_res.is_error() == 0")
+    runner_assert_eq(r, ok_res.is_ok(), true, "ok_res.is_ok() is true")
+    runner_assert_eq(r, ok_res.is_error(), false, "ok_res.is_error() is false")
     runner_assert_str_eq(r, ok_res.unwrap_or("fallback"), "Computed successfully", "ok_res unwrap_or returns message")
 
     let err_res = pkg::error_result("Failed operation", ["Invalid input", "Timeout"])
-    runner_assert_eq(r, err_res.is_ok(), false, "err_res.is_ok() == 0")
-    runner_assert_eq(r, err_res.is_error(), true, "err_res.is_error() == 1")
+    runner_assert_eq(r, err_res.is_ok(), false, "err_res.is_ok() is false")
+    runner_assert_eq(r, err_res.is_error(), true, "err_res.is_error() is true")
     runner_assert_str_eq(r, err_res.unwrap_or("fallback"), "fallback", "err_res unwrap_or returns fallback")
     runner_assert_eq(r, len(err_res.errors), 2, "err_res contains 2 error details")
 
@@ -122,7 +122,7 @@ function main()
     # 8. Workflow Processing & Batching
     # ═══════════════════════════════════════════════════════════
     let proc_res = pkg::process("Alice", 3, pkg::TemplatePriority.High)
-    runner_assert_eq(r, proc_res.is_ok(), 1, "pkg::process returns successful result")
+    runner_assert_eq(r, proc_res.is_ok(), true, "pkg::process returns successful result")
     runner_assert_str_eq(r, proc_res.message, "OK", "pkg::process message is OK")
 
     let batch_in = ["Alpha", "Beta", "Gamma"]
@@ -166,6 +166,66 @@ function main()
     let extra_res = pkg::extra_greeting("Alya")
     @cfg(feature = "extras")
     runner_assert_str_eq(r, extra_res, "Howdy, Alya!", "pkg::extra_greeting returns extras greeting")
+
+    # ═══════════════════════════════════════════════════════════
+    # 12. Structured Errors & Recovery (errors + pipeline)
+    # ═══════════════════════════════════════════════════════════
+    let strict_res = pkg::process_strict("Alice")
+    runner_assert_eq(r, strict_res.is_ok(), true, "pkg::process_strict returns success on valid label")
+
+    let threw = false
+    try
+        pkg::process_strict("")
+    catch err
+        threw = true
+        let diag = when err
+            is pkg::TemplateError => f"TemplateError(field={err.field}): {err.message}"
+            else => f"error: {err}"
+        end
+        runner_assert_str_eq(r, diag, "TemplateError(field=label): label must not be empty", "caught TemplateError renders field context")
+    end
+    runner_assert_true(r, threw, "pkg::process_strict throws TemplateError on empty label")
+
+    let recovered = pkg::try_process("")
+    runner_assert_eq(r, recovered.is_error(), true, "pkg::try_process converts empty label to failed result")
+    runner_assert_str_eq(r, recovered.message, "TemplateError(field=label): label must not be empty", "recovered message carries field context")
+    let recovered_ok = pkg::try_process("Bob")
+    runner_assert_eq(r, recovered_ok.is_ok(), true, "pkg::try_process returns success on valid label")
+
+    # `finally` runs on both success and error paths.
+    let finally_ran = false
+    try
+        throw "boom"
+    catch err
+        runner_assert_str_eq(r, err, "boom", "caught string round-trips")
+    finally
+        finally_ran = true
+    end
+    runner_assert_true(r, finally_ran, "finally runs after catch")
+
+    # ═══════════════════════════════════════════════════════════
+    # 13. Null Safety Operators (??) & Generics (pipeline_first)
+    # ═══════════════════════════════════════════════════════════
+    let maybe_name: string? = null
+    runner_assert_str_eq(r, pkg::sanitize_name(maybe_name), "World", "sanitize_name(null) falls back to World")
+
+    let first_hit = pkg::pipeline_first(["a", "b"]) ?? "empty"
+    runner_assert_str_eq(r, first_hit, "a", "pipeline_first returns head element")
+    let first_miss = pkg::pipeline_first([]) ?? "empty"
+    runner_assert_str_eq(r, first_miss, "empty", "pipeline_first(null/empty) coalesces to fallback")
+
+    # ═══════════════════════════════════════════════════════════
+    # 14. Deferred Cleanup Ordering
+    # ═══════════════════════════════════════════════════════════
+    let log = []
+    function scoped_work()
+        defer log.push("cleanup")
+        log.push("work")
+    end
+    scoped_work()
+    runner_assert_eq(r, len(log), 2, "deferred cleanup runs after function body")
+    runner_assert_str_eq(r, log[0], "work", "body runs before deferred cleanup")
+    runner_assert_str_eq(r, log[1], "cleanup", "defer runs at scope exit")
 
     let failed = runner_summary(r)
     if failed > 0

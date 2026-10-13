@@ -6,6 +6,8 @@
 
 import "./types.alya"
 import "./core/formatter.alya"
+import "./core/errors.alya"
+import "./core/pipeline.alya"
 @cfg(feature = "extras")
 import "./core/extras.alya"
 
@@ -54,6 +56,10 @@ end
 
 ## Processes a configuration label through the formatting pipeline, returning a `TemplateResult`.
 ##
+## Thin facade over `pipeline_process` in `src/core/pipeline.alya`: the engine
+## owns validation, formatting, and batch orchestration, so complex packages
+## can split the engine into per-domain subfolders without changing this API.
+##
 ## ### Parameters
 ## - `label`: The target entity label string. Defaults to `"World"`.
 ## - `count`: Counter or repetition count. Defaults to `1`.
@@ -68,14 +74,13 @@ end
 ## say res.message # "OK"
 ## ```
 pub function process(label = "World", count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
-    let cfg = make_config(label, count, priority)
-    let formatted = format_config(cfg)
-    return ok_result(formatted, "OK")
+    return pipeline_process(label, count, priority)
 end
 
 ## Processes an array of labels in batch, returning an array of formatted strings.
 ##
-## Handles null input safely by returning an empty array.
+## Thin facade over `pipeline_process_batch`: handles null input safely by
+## returning an empty array.
 ##
 ## ### Parameters
 ## - `labels`: Array of label strings to process (or null).
@@ -88,15 +93,59 @@ end
 ## let results = process_batch(["Alpha", "Beta"])
 ## ```
 pub function process_batch(labels) -> array
-    if labels is null
-        return []
-    end
+    return pipeline_process_batch(labels)
+end
 
-    let configs = []
-    for lbl in labels
-        configs.push(make_config(lbl, 1, TemplatePriority.Normal))
-    end
-    return format_batch(configs)
+## Runs the strict pipeline, throwing `TemplateError` on empty input.
+##
+## Thin facade over `pipeline_strict_process`: empty or null labels raise a
+## structured error instead of falling back to `"World"`. Narrow it with an
+## inline `when` at your `catch` site (see `src/core/errors.alya`).
+##
+## ### Parameters
+## - `label`: Candidate label string (nullable).
+## - `count`: Counter or repetition count. Defaults to `1`.
+## - `priority`: Priority tier. Defaults to `TemplatePriority.Normal`.
+##
+## ### Returns
+## A successful `TemplateResult`.
+##
+## ### Examples
+## ```alya
+## try
+##     let res = process_strict("Alice")
+## catch err
+##     let diag = when err
+##         is TemplateError => f"TemplateError(field={err.field}): {err.message}"
+##         else => f"error: {err}"
+##     end
+##     say diag
+## end
+## ```
+pub function process_strict(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
+    return pipeline_strict_process(label, count, priority)
+end
+
+## Runs the strict pipeline, converting errors into failed results.
+##
+## Thin facade over `try_pipeline_process`: never throws, returning an
+## `error_result` for invalid input instead.
+##
+## ### Parameters
+## - `label`: Candidate label string (nullable).
+## - `count`: Counter or repetition count. Defaults to `1`.
+## - `priority`: Priority tier. Defaults to `TemplatePriority.Normal`.
+##
+## ### Returns
+## Successful result on valid input, failed result otherwise.
+##
+## ### Examples
+## ```alya
+## let res = try_process("")
+## say res.is_error() # true
+## ```
+pub function try_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
+    return try_pipeline_process(label, count, priority)
 end
 
 ## Formats and returns the summary representation of a configuration.

@@ -89,7 +89,7 @@ end
 pub function format_config(config: TemplateConfig) -> string
     let prio = build_priority_label(config.priority)
     let state_str = when config.enabled
-        is 1 => "enabled"
+        is true => "enabled"
         else => "disabled"
     end
     return f"[Config] {config.name} (count: {config.count}, priority: {prio}, status: {state_str})"
@@ -109,7 +109,7 @@ end
 ## say format_result(r) # "[OK] Completed"
 ## ```
 pub function format_result(result: TemplateResult) -> string
-    if result.is_ok() == true
+    if result.is_ok()
         return f"[OK] {result.message}"
     end
     return f"[ERROR] {result.message}"

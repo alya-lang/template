@@ -1,0 +1,75 @@
+## {{PACKAGE_NAME}} Structured Error Model
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Demonstrates modern error handling: structured `throw` values,
+## `try` / `catch err` / `finally` recovery, and `when`-based error
+## dispatch. Keep error construction here so `core/pipeline.alya` and
+## callers share a single error vocabulary.
+
+import "../types.alya"
+
+## Structured error raised for invalid processing input.
+##
+## ### Fields
+## - `field`: Name of the offending input field.
+## - `message`: Human-readable explanation.
+pub struct TemplateError
+    field: string,
+    message: string
+end
+
+## Constructs a `TemplateError` for a missing or empty field value.
+##
+## ### Parameters
+## - `field`: Name of the offending input field.
+## - `message`: Human-readable explanation. Defaults to `"value is required"`.
+##
+## ### Returns
+## A populated `TemplateError` instance.
+##
+## ### Examples
+## ```alya
+## throw make_template_error("label", "label must not be empty")
+## ```
+pub function make_template_error(field: string, message: string = "value is required") -> TemplateError
+    return TemplateError {
+        field: field,
+        message: message
+    }
+end
+
+## Validates a processing label, throwing `TemplateError` on empty input.
+##
+## ### Parameters
+## - `label`: Candidate label string (nullable).
+##
+## ### Returns
+## The sanitized label string.
+##
+## ### Examples
+## ```alya
+## try
+##     let clean = check_label("Alice")
+## catch err
+##     say f"rejected: {err}"
+## end
+## ```
+pub function check_label(label: string?) -> string
+    let clean = label ?? ""
+    if clean == ""
+        throw make_template_error("label", "label must not be empty")
+    end
+    return clean
+end
+
+# NOTE (catch-site narrowing): fields of a value captured by `catch err`
+# are only readable at the catch site itself, either directly (`err.field`)
+# or under `when err is TemplateError` narrowing there. Passing the raw
+# caught value into another function loses fields beyond the first, so
+# always dispatch with an inline `when` where you catch:
+#   catch err
+#       let diag = when err
+#           is TemplateError => f"TemplateError(field={err.field}): {err.message}"
+#           else => f"error: {err}"
+#       end
+#   end

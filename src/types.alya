@@ -18,11 +18,11 @@ end
 
 ## Public interface for objects that provide detailed status descriptions and validation.
 ##
-## Structs implementing `describe(self) -> string` and `is_valid(self) -> int`
+## Structs implementing `describe(self) -> string` and `is_valid(self) -> bool`
 ## satisfy this contract without explicit inheritance declarations.
 pub interface Describable
     function describe(self) -> string
-    function is_valid(self) -> int
+    function is_valid(self) -> bool
 end
 
 # ───────────────────────────────────────────────────────────────
@@ -58,6 +58,9 @@ pub enum TemplateStyle
     Casual = 2
 end
 
+## Default repetition limit applied by factory constructors.
+pub const DEFAULT_COUNT: int = 1
+
 # ───────────────────────────────────────────────────────────────
 # Data Models (Structs)
 # ───────────────────────────────────────────────────────────────
@@ -72,14 +75,14 @@ end
 ## - `count`: Repetition limit or processing counter.
 ## - `priority`: Operational priority level (`TemplatePriority` enum value).
 ## - `style`: Presentation style variant (`TemplateStyle` enum value).
-## - `enabled`: Activation flag (1 for active, 0 for inactive).
+## - `enabled`: Activation flag (true for active, false for inactive).
 ## - `tags`: Categorical metadata tags array.
 pub struct TemplateConfig
     name: string,
     count: int,
     priority: int,
     style: int,
-    enabled: int,
+    enabled: bool,
     tags: array
 end
 
@@ -145,9 +148,10 @@ end
 ## Validates and sanitizes a candidate name string.
 ##
 ## Replaces null or empty strings with the default `"World"` fallback.
+## Demonstrates nullable input (`string?`) with null coalescing (`??`).
 ##
 ## ### Parameters
-## - `name`: The candidate name value to sanitize.
+## - `name`: The candidate name value to sanitize (nullable).
 ##
 ## ### Returns
 ## The validated string value, or `"World"` if empty or null.
@@ -157,8 +161,9 @@ end
 ## let clean = sanitize_name(null) # "World"
 ## let user = sanitize_name("Alice") # "Alice"
 ## ```
-pub function sanitize_name(name) -> string
-    return sanitize_text_internal(name, "World")
+pub function sanitize_name(name: string?) -> string
+    let base = name ?? "World"
+    return sanitize_text_internal(base, "World")
 end
 
 ## Factory constructor creating a validated `TemplateConfig` instance.
@@ -170,7 +175,7 @@ end
 ## - `count`: Counter or repetition limit. Defaults to `1`.
 ## - `priority`: Priority tier. Defaults to `TemplatePriority.Normal`.
 ## - `style`: Presentation style variant. Defaults to `TemplateStyle.Standard`.
-## - `enabled`: Active flag. Defaults to `1`.
+## - `enabled`: Active flag. Defaults to `true`.
 ## - `tags`: Categorization tags array. Defaults to `[]`.
 ##
 ## ### Returns
@@ -180,7 +185,7 @@ end
 ## ```alya
 ## let cfg = make_config("Alice", 3, TemplatePriority.High)
 ## ```
-pub function make_config(name = "World", count: int = 1, priority: int = TemplatePriority.Normal, style: int = TemplateStyle.Standard, enabled: int = 1, tags: array = []) -> TemplateConfig
+pub function make_config(name = "World", count: int = 1, priority: int = TemplatePriority.Normal, style: int = TemplateStyle.Standard, enabled: bool = true, tags: array = []) -> TemplateConfig
     let valid_name = sanitize_name(name)
     return TemplateConfig {
         name: valid_name,
@@ -302,22 +307,22 @@ end
 ## - `self`: The target `TemplateConfig` instance.
 ##
 ## ### Returns
-## `1` if valid (non-empty name and count >= 0), `0` otherwise.
-pub function TemplateConfig.is_valid(self: TemplateConfig) -> int
+## `true` if valid (non-empty name and count >= 0), `false` otherwise.
+pub function TemplateConfig.is_valid(self: TemplateConfig) -> bool
     if self.name == "" or self.count < 0
         return false
     end
     return true
 end
 
-## Returns 1 if this configuration is enabled, 0 otherwise.
+## Returns true if this configuration is enabled, false otherwise.
 ##
 ## ### Parameters
 ## - `self`: The target `TemplateConfig` instance.
 ##
 ## ### Returns
-## `1` when enabled, `0` when disabled.
-pub function TemplateConfig.is_enabled(self: TemplateConfig) -> int
+## `true` when enabled, `false` when disabled.
+pub function TemplateConfig.is_enabled(self: TemplateConfig) -> bool
     return self.enabled
 end
 
@@ -363,28 +368,28 @@ end
 # Struct Methods: TemplateResult
 # ───────────────────────────────────────────────────────────────
 
-## Returns 1 if this result represents a successful operation.
+## Returns true if this result represents a successful operation.
 ##
 ## ### Parameters
 ## - `self`: The target `TemplateResult` instance.
 ##
 ## ### Returns
-## `1` when status is `0`, `0` otherwise.
-pub function TemplateResult.is_ok(self: TemplateResult) -> int
+## `true` when status is `0`, `false` otherwise.
+pub function TemplateResult.is_ok(self: TemplateResult) -> bool
     if self.status == 0
         return true
     end
     return false
 end
 
-## Returns 1 if this result represents an error condition.
+## Returns true if this result represents an error condition.
 ##
 ## ### Parameters
 ## - `self`: The target `TemplateResult` instance.
 ##
 ## ### Returns
-## `1` when status is non-zero, `0` when status is `0`.
-pub function TemplateResult.is_error(self: TemplateResult) -> int
+## `true` when status is non-zero, `false` when status is `0`.
+pub function TemplateResult.is_error(self: TemplateResult) -> bool
     if self.status != 0
         return true
     end
