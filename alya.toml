@@ -20,20 +20,22 @@ keywords = ["alya", "alya-lang", "package", "{{PACKAGE_NAME}}"]
 # so callers get a clear descriptive error instead of an undefined reference.
 # `extras` is a standalone capability slice (`src/core/extras.alya`);
 # `strict` is the structured-error recovery slice (`src/core/errors.alya`
-# plus the strict/try engines in `src/core/pipeline.alya`). `default` is
+# plus the strict/try engines in `src/core/pipeline.alya`); `native`
+# exposes the bundled C engine (`c/`, `src/ffi.alya`, `[build]`). `default` is
 # active unless the caller passes `--no-default-features`; select features
 # explicitly via `alya build/run/test/bench/install --features <a,b>`.
 [features]
-default = ["extras", "strict"]
+default = ["extras", "strict", "native"]
 extras = []
 strict = []
+native = []
 # extra = ["extra"]
 
-# [build]
-# c-sources = ["c/source.c"]
-# c-flags = ["-O2"]
-# c-include-dirs = ["c"]
-# links = "{{PACKAGE_NAME}}"
+[build]
+c-sources = ["c/native.c"]
+c-flags = ["-O2"]
+c-include-dirs = ["c"]
+links = "native"
 
 # [lint]
 # disabled_rules = []

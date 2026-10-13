@@ -1,0 +1,97 @@
+## {{PACKAGE_NAME}} Collection Helpers
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Small pure helpers over arrays showcasing slicing (`items[1..3]`),
+## membership (`in` / `not in`), generic type parameters (`[T]`, `[T, U]`),
+## and first-class closures (`|x: int| => ...`, IIFE).
+## Headless-testable: no I/O here, only pure data transformation.
+
+## Returns the first `n` elements of an array.
+##
+## ### Parameters
+## - `items`: Source array (or null).
+## - `n`: Maximum elements to keep.
+##
+## ### Returns
+## Leading slice, or `[]` when the input is null.
+##
+## ### Examples
+## ```alya
+## let head = collect_take(["a", "b", "c"], 2) # ["a", "b"]
+## ```
+pub function collect_take(items, n: int) -> array
+    if items is null
+        return []
+    end
+    if n >= len(items)
+        return items[..]
+    end
+    return items[..n]
+end
+
+## Drops the first `n` elements of an array.
+##
+## ### Parameters
+## - `items`: Source array (or null).
+## - `n`: Elements to skip.
+##
+## ### Returns
+## Trailing slice, or `[]` when the input is null or shorter than `n`.
+##
+## ### Examples
+## ```alya
+## let tail = collect_drop(["a", "b", "c"], 1) # ["b", "c"]
+## ```
+pub function collect_drop(items, n: int) -> array
+    if items is null or n >= len(items)
+        return []
+    end
+    return items[n..]
+end
+
+## Reports whether an array contains a value.
+##
+## ### Parameters
+## - `items`: Source array (or null).
+## - `v`: Candidate value.
+##
+## ### Returns
+## True when `v` is a member, false otherwise.
+##
+## ### Examples
+## ```alya
+## say collect_contains(["a", "b"], "b") # true
+## ```
+pub function collect_contains(items, v) -> bool
+    if items is null
+        return false
+    end
+    return v in items
+end
+
+## Maps each element through a closure, returning a new array.
+##
+## Generic over element and result types (`[T, U]`); the mapping closure
+## takes one element and returns the mapped value.
+##
+## ### Parameters
+## - `items`: Source array (or null).
+## - `f`: Mapping closure, e.g. `|x: int| => x * 2`.
+##
+## ### Returns
+## New array of mapped values, or `[]` for null input.
+##
+## ### Examples
+## ```alya
+## let doubled = collect_map_each([1, 2, 3], |x: int| => x * 2) # [2, 4, 6]
+## ```
+pub function collect_map_each[T, U](items: T[], f) -> U[]
+    let out: U[] = []
+    if items is null
+        return out
+    end
+    for x in items
+        out.push(f(x))
+    end
+    return out
+end

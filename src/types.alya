@@ -119,6 +119,20 @@ pub struct TemplateStats
     skipped: int
 end
 
+## Generic LIFO stack container.
+##
+## Demonstrates generic structs (`Stack[T]`) and generic methods.
+##
+## ### Examples
+## ```alya
+## let st = Stack[int].create()
+## st.push(10)
+## say st.size() # 1
+## ```
+pub struct Stack[T]
+    items: T[]
+end
+
 # ───────────────────────────────────────────────────────────────
 # Private Helper Functions
 # ───────────────────────────────────────────────────────────────
@@ -436,4 +450,93 @@ end
 pub function TemplateStats.success_rate(self: TemplateStats) -> string
     let checked = self.passed + self.failed
     return format_percent_internal(self.passed, checked)
+end
+
+## Combines two statistics records field by field.
+##
+## Plain-function equivalent of an elementwise sum. (Operator overloading
+## with `operator+` is intentionally not showcased here: cross-module
+## overloaded operators returning structs currently misbehave, see
+## alya-lang/alya#180. Revisit once that issue is fixed.)
+##
+## ### Parameters
+## - `a`: The left `TemplateStats` instance.
+## - `b`: The right `TemplateStats` instance.
+##
+## ### Returns
+## New `TemplateStats` with summed counters.
+##
+## ### Examples
+## ```alya
+## let total = combine_stats(make_stats(10, 9, 1, 0), make_stats(10, 8, 2, 0))
+## ```
+pub function combine_stats(a: TemplateStats, b: TemplateStats) -> TemplateStats
+    return TemplateStats {
+        total: a.total + b.total,
+        passed: a.passed + b.passed,
+        failed: a.failed + b.failed,
+        skipped: a.skipped + b.skipped
+    }
+end
+
+# ───────────────────────────────────────────────────────────────
+# Generic Methods: Stack[T]
+# ───────────────────────────────────────────────────────────────
+
+## Creates an empty `Stack[T]`.
+##
+## ### Returns
+## New stack with no items.
+##
+## ### Examples
+## ```alya
+## let st = Stack[int].create()
+## ```
+pub function Stack[T].create() -> Stack[T]
+    return Stack[T] { items: [] }
+end
+
+## Pushes an item onto the stack.
+##
+## ### Parameters
+## - `self`: The target stack.
+## - `item`: Item to push.
+pub function Stack[T].push(self: Stack[T], item: T)
+    self.items.push(item)
+end
+
+## Pops the top item off the stack.
+##
+## ### Parameters
+## - `self`: The target stack.
+##
+## ### Returns
+## The most recently pushed item.
+pub function Stack[T].pop(self: Stack[T]) -> T
+    return self.items.pop()
+end
+
+## Returns the top item without removing it, or null when empty.
+##
+## ### Parameters
+## - `self`: The target stack.
+##
+## ### Returns
+## Top item, or null when the stack is empty.
+pub function Stack[T].peek(self: Stack[T]) -> T?
+    if len(self.items) == 0
+        return null
+    end
+    return self.items[len(self.items) - 1]
+end
+
+## Returns the number of items on the stack.
+##
+## ### Parameters
+## - `self`: The target stack.
+##
+## ### Returns
+## Item count.
+pub function Stack[T].size(self: Stack[T]) -> int
+    return len(self.items)
 end

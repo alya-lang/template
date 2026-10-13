@@ -6,9 +6,12 @@
 
 import "./types.alya"
 import "./core/formatter.alya"
+import "./core/collect.alya"
 @cfg(feature = "strict")
 import "./core/errors.alya"
 import "./core/pipeline.alya"
+@cfg(feature = "native")
+import "./ffi.alya"
 @cfg(feature = "extras")
 import "./core/extras.alya"
 
@@ -232,6 +235,28 @@ pub function repeat_string(label: string, count: int) -> array
     return repeat_label(label, count)
 end
 
+## Adds two integers via the bundled native C engine.
+##
+## Only available when the `native` feature is active (default-on). Thin
+## facade over the `alya_<package>_add` FFI declaration in `src/ffi.alya`
+## (backed by `c/native.c`, see `[build]` in `alya.toml`).
+##
+## ### Parameters
+## - `a`: First operand.
+## - `b`: Second operand.
+##
+## ### Returns
+## The sum computed by native code.
+##
+## ### Examples
+## ```alya
+## let sum = c_add(10, 32) # 42
+## ```
+@cfg(feature = "native")
+pub function c_add(a: int = 0, b: int = 0) -> int
+    return alya_native_add(a, b)
+end
+
 # ───────────────────────────────────────────────────────────────
 # Feature-Gated API Fallback Stubs
 # ───────────────────────────────────────────────────────────────
@@ -270,5 +295,18 @@ end
 @cfg(not(feature = "strict"))
 pub function try_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
     return error_result("strict feature is disabled (rebuild with default features or --features strict)", ["strict feature is disabled"])
+end
+# alya-lint: enable unused-param
+
+# The slim-view stub below keeps the public API surface stable when the
+# `native` feature is disabled (params unused by design).
+# alya-lint: disable unused-param
+## Fallback stub for `c_add` when the `native` feature is disabled.
+##
+## Rebuild with default features (or `--features native`) for the full
+## implementation backed by `c/native.c`.
+@cfg(not(feature = "native"))
+pub function c_add(a: int = 0, b: int = 0) -> int
+    throw "native feature is disabled (rebuild with default features or --features native)"
 end
 # alya-lint: enable unused-param

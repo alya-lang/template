@@ -1,0 +1,12 @@
+## {{PACKAGE_NAME}} Native C FFI declarations (feature-gated)
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Declares the bundled C engine in `c/` (see `[build]` in `alya.toml`).
+## Only compiled when the `native` feature is active; `src/lib.alya` keeps
+## a fallback stub so callers get a clear descriptive error instead of an
+## undefined reference.
+
+@cfg(feature = "native")
+extern "C" from "native"
+    function alya_native_add(a: i32, b: i32) -> i32
+end

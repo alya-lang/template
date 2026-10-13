@@ -2,6 +2,7 @@
 ## Part of the Alya Language package ecosystem (https://github.com/alya-lang)
 
 import "../src/lib.alya" as pkg
+import "std/sync"
 
 # Feature-gated walkthrough step: full recovery demo when `strict` is
 # active, descriptive placeholder otherwise (same dual-definition pattern
@@ -25,6 +26,27 @@ end
 @cfg(not(feature = "strict"))
 function show_strict_recovery()
     say "Strict recovery: (disabled — rebuild with --features strict)"
+end
+
+# Feature-gated walkthrough step: native C call when `native` is active,
+# descriptive placeholder otherwise.
+@cfg(feature = "native")
+function show_native_add()
+    say "Native c_add(10, 32): " + str(pkg::c_add(10, 32))
+end
+
+@cfg(not(feature = "native"))
+function show_native_add()
+    say "Native c_add: (disabled — rebuild with --features native)"
+end
+
+# Fiber producer routine: takes the channel as an argument (spawn-closure
+# capture of enclosing locals currently crashes, see alya-lang/alya#181).
+function fiber_producer(ch, count: int)
+    for i in 1..=count
+        channel_send(ch, i)
+    end
+    channel_close(ch)
 end
 
 function main()
@@ -197,6 +219,28 @@ function main()
     say "Nickname fallback: " + pkg::sanitize_name(nick)
     let head = pkg::pipeline_first(["Alpha", "Beta"]) ?? "empty"
     say "First element:     " + head
+    say ""
+
+    # ───────────────────────────────────────────────────────────
+    # 13. Native C Engine (`native` feature, default-on)
+    # ───────────────────────────────────────────────────────────
+    say "--- 13. Native C Engine ---"
+    show_native_add()
+    say ""
+
+    # ───────────────────────────────────────────────────────────
+    # 14. Fibers & Channels (Concurrency)
+    # ───────────────────────────────────────────────────────────
+    say "--- 14. Fibers & Channels ---"
+    let nums = channel_new(3)
+    spawn fiber_producer(nums, 3)
+    let fib_total = 0
+    let fib_got = 0
+    while fib_got < 3
+        fib_total += channel_recv(nums, 5000)
+        fib_got += 1
+    end
+    say "Fiber sum (1+2+3): " + str(fib_total)
     say ""
 
     say ""

@@ -20,7 +20,9 @@
 - 🛡️ **Defensive Result Pattern**: Structured error handling with `throw` / `try` / `catch err` / `finally`, `when`-based error dispatch, and outcome encapsulation with `ok_result` and `error_result`
 - 🧪 **Enterprise Test & Benchmark Suite**: 100% test coverage with standard assertions (`std/test`) and micro-benchmarking (`std/test` bench runner)
 - 🚩 **Feature-Gated API Slices**: Optional capability slices via `[features]` in `alya.toml` (`default = ["extras"]`) and `@cfg(feature = "extras")` gating with a `@cfg(not(feature = "extras"))` fallback stub (see `src/core/extras.alya`)
-- 🧬 **Modern Type System Showcase**: Nullable types (`string?`), null coalescing (`??`), generic helpers (`pipeline_first[T]`), `defer` cleanup, indexed loops (`for i, x in arr`), and `bool` predicates
+- 🧬 **Modern Type System Showcase**: Nullable types (`string?`), null coalescing (`??`), generic helpers (`pipeline_first[T]`, `Stack[T]`), `defer` cleanup, indexed loops (`for i, x in arr`), and `bool` predicates
+- 🔧 **Native C Engine Slice**: Bundled zero-dependency FFI (`c/`, `src/ffi.alya`, `[build]`) behind the `native` feature with fallback stub
+- 🌀 **Fibers & Channels Walkthrough**: Deterministic `spawn` + `std/sync` channel pipeline in the demo (argument-passing form)
 
 ---
 
@@ -32,21 +34,24 @@
 ├── .editorconfig           # Uniform formatting rules across IDEs and editors
 ├── .gitignore              # Ecosystem standard ignore filters
 ├── .vscode/                # VS Code workspace settings, DAP launch configurations & tasks
-├── alya.toml               # Package manifest with dependencies, [features] and optional [build]
-├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
+├── alya.toml               # Package manifest with dependencies, [features] and [build]
+├── c/                      # Bundled native C engine (`native` feature; delete with ffi.alya+[build] for pure-Alya packages)
 ├── src/
 │   ├── lib.alya            # Public API facade (thin pub wrappers delegating to core/* engines)
-│   ├── types.alya          # Data models, pub enums, pub structs, struct methods & pub consts
-│   ├── ffi.alya            # (Optional) Native extern "C" declarations
+│   ├── types.alya          # Data models, pub enums, pub structs (incl. generic Stack[T]), methods & pub consts
+│   ├── ffi.alya            # Native extern "C" declarations (`native` feature)
 │   └── core/               # Subdirectory module hierarchy (grow into <domain>/ for complex packages)
 │       ├── formatter.alya  # Domain formatting routines, salutation builders & pattern matchers
+│       ├── collect.alya    # Collection helpers: slicing, membership, generics & closures
 │       ├── pipeline.alya   # Processing engine: pipeline, strict/try variants, batching, generics
 │       ├── errors.alya     # Structured TemplateError model, validation & catch-site narrowing guide
 │       └── extras.alya     # Feature-gated (`extras`) optional API slice with `@cfg` gating
 ├── examples/
 │   └── demo.alya           # Comprehensive runnable walkthrough of all package capabilities
 ├── tests/
-│   └── test_basic.alya     # Automated test suite with 100% feature coverage
+│   ├── test_basic.alya     # Core automated test suite (runner API + one native test block)
+│   ├── test_strict.alya    # Per-feature suite (`strict` slice; dual main: suite + skip stub)
+│   └── test_native.alya    # Per-feature suite (`native` slice; dual main: suite + skip stub)
 └── benches/
     └── bench_basic.alya    # Micro-benchmarks measuring performance and throughput
 ```
@@ -78,6 +83,7 @@ alya install
 |:---|:---:|:---|
 | `extras` | ✅ | Optional capability slice (`extra_greeting` in `src/core/extras.alya`, with a fallback stub when disabled). |
 | `strict` | ✅ | Structured-error recovery slice (`TemplateError`, `check_label` in `src/core/errors.alya` plus `process_strict`/`try_process` in `src/core/pipeline.alya`, with fallback stubs when disabled; per-feature tests live in `tests/test_strict.alya`). |
+| `native` | ✅ | Bundled C engine slice (`c_add` via `src/ffi.alya`, compiled from `c/` per `[build]`, with a fallback stub when disabled; per-feature tests live in `tests/test_native.alya`). |
 
 ```bash
 # Full build (default)
@@ -149,6 +155,12 @@ main()
 | `clamp(n, min_val, max_val)` | `pub function` | Clamps an integer value to the closed range `[min_val, max_val]`. |
 | `pluralize(n, singular, plural)` | `pub function` | Pattern-matches count to return singular or plural noun form. |
 | `repeat_string(label, count)` | `pub function` | Repeats a string into an array of `count` items. |
+| `c_add(a, b)` | `pub function` (`native` feature, default-on) | Adds two integers via the bundled native C engine. |
+| `collect_take(items, n)` | `pub function` | Returns the first `n` elements (slicing). |
+| `collect_drop(items, n)` | `pub function` | Drops the first `n` elements (slicing). |
+| `collect_contains(items, v)` | `pub function` | Reports membership via `in`. |
+| `collect_map_each(items, f)` | `pub function` | Generic `[T, U]` elementwise closure map. |
+| `combine_stats(a, b)` | `pub function` | Fieldwise sum of two `TemplateStats` records. |
 | `extra_greeting(name = "World")` | `pub function` (`extras` feature, default-on) | Enthusiastic greeting slice gated by `@cfg(feature = "extras")`; stub throws a descriptive error when the feature is off. |
 | `Summarizable` | `pub interface` | Structural contract requiring `summary(self) -> string`. |
 | `Describable` | `pub interface` | Structural contract requiring `describe(self) -> string` and `is_valid(self) -> bool`. |
@@ -170,6 +182,12 @@ main()
 | `TemplateStats.total_checked()` | `pub method` | Sum of passed and failed items count. |
 | `TemplateStats.success_rate()` | `pub method` | Computed percentage string (e.g. `"95%"`). |
 | `TemplateError` | `pub struct` (`strict` feature, default-on) | Structured validation error (`field`, `message`); narrow with `when err is TemplateError` at the catch site. |
+| `Stack[T]` | `pub struct` | Generic LIFO container (`items: T[]`). |
+| `Stack[T].create()` | `pub function` | Empty-stack constructor. |
+| `Stack[T].push(item)` | `pub method` | Pushes an item. |
+| `Stack[T].pop()` | `pub method` | Pops and returns the head item. |
+| `Stack[T].peek()` | `pub method` | Returns the head item or null without removing. |
+| `Stack[T].size()` | `pub method` | Returns the item count. |
 | `DEFAULT_COUNT` | `pub const` | Default repetition limit applied by factory constructors. |
 
 > [!TIP]

@@ -201,10 +201,55 @@ function main()
     runner_assert_str_eq(r, log[0], "work", "body runs before deferred cleanup")
     runner_assert_str_eq(r, log[1], "cleanup", "defer runs at scope exit")
 
+    # ═══════════════════════════════════════════════════════════
+    # 14. Generic Stack[T] Container
+    # ═══════════════════════════════════════════════════════════
+    let st = pkg::Stack[int].create()
+    st.push(10)
+    st.push(20)
+    runner_assert_eq(r, st.size(), 2, "stack size tracks pushes")
+    runner_assert_eq(r, st.pop(), 20, "stack pop returns LIFO head")
+    runner_assert_eq(r, st.peek() ?? -1, 10, "stack peek reads head without removing")
+    runner_assert_eq(r, st.size(), 1, "stack size tracks pops")
+
+    # ═══════════════════════════════════════════════════════════
+    # 15. Collection Helpers: Slicing, Membership & Closures
+    # ═══════════════════════════════════════════════════════════
+    let taken = pkg::collect_take(["a", "b", "c"], 2)
+    runner_assert_eq(r, len(taken), 2, "collect_take keeps leading slice")
+    runner_assert_str_eq(r, taken[0], "a", "collect_take slice head matches")
+    let dropped = pkg::collect_drop(["a", "b", "c"], 1)
+    runner_assert_eq(r, len(dropped), 2, "collect_drop skips leading slice")
+    runner_assert_str_eq(r, dropped[0], "b", "collect_drop slice head matches")
+    runner_assert_eq(r, pkg::collect_contains(["a", "b"], "b"), true, "collect_contains finds member")
+    runner_assert_eq(r, pkg::collect_contains(["a", "b"], "z"), false, "collect_contains rejects non-member")
+
+    let doubled = pkg::collect_map_each([1, 2, 3], |x: int| => x * 2)
+    runner_assert_eq(r, len(doubled), 3, "collect_map_each preserves length")
+    runner_assert_eq(r, doubled[0], 2, "collect_map_each applies closure elementwise")
+    runner_assert_eq(r, doubled[2], 6, "collect_map_each maps trailing element")
+
+    let iife_doubled = (|x: int| => x * 2)(21)
+    runner_assert_eq(r, iife_doubled, 42, "IIFE evaluates immediately")
+
+    # ═══════════════════════════════════════════════════════════
+    # 16. Statistics Combination Helper
+    # ═══════════════════════════════════════════════════════════
+    let half_a = pkg::make_stats(10, 9, 1, 0)
+    let half_b = pkg::make_stats(10, 8, 2, 0)
+    let combined = pkg::combine_stats(half_a, half_b)
+    runner_assert_eq(r, combined.total, 20, "combine_stats sums totals")
+    runner_assert_eq(r, combined.passed, 17, "combine_stats sums passes")
+
     let failed = runner_summary(r)
     if failed > 0
         exit(1)
     end
+end
+
+# Native first-class test block (runs alongside the runner suite above).
+test "sanitize_name falls back to world on null"
+    assert_eq(pkg::sanitize_name(null), "World")
 end
 
 main()
