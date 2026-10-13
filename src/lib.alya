@@ -120,11 +120,7 @@ end
 ## try
 ##     let res = process_strict("Alice")
 ## catch err
-##     let diag = when err
-##         is TemplateError => f"TemplateError(field={err.field}): {err.message}"
-##         else => f"error: {err}"
-##     end
-##     say diag
+##     say format_caught_error(err)
 ## end
 ## ```
 @cfg(feature = "strict")

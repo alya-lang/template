@@ -233,13 +233,14 @@ function main()
     runner_assert_eq(r, iife_doubled, 42, "IIFE evaluates immediately")
 
     # ═══════════════════════════════════════════════════════════
-    # 16. Statistics Combination Helper
+    # 16. Operator Overloading (TemplateStats + and ==)
     # ═══════════════════════════════════════════════════════════
     let half_a = pkg::make_stats(10, 9, 1, 0)
     let half_b = pkg::make_stats(10, 8, 2, 0)
-    let combined = pkg::combine_stats(half_a, half_b)
-    runner_assert_eq(r, combined.total, 20, "combine_stats sums totals")
-    runner_assert_eq(r, combined.passed, 17, "combine_stats sums passes")
+    let combined = half_a + half_b
+    runner_assert_eq(r, combined.total, 20, "operator+ sums totals")
+    runner_assert_eq(r, combined.passed, 17, "operator+ sums passes")
+    runner_assert_true(r, combined == pkg::make_stats(20, 17, 3, 0), "operator== compares fieldwise")
 
     let failed = runner_summary(r)
     if failed > 0

@@ -28,10 +28,7 @@ function main()
         pkg::process_strict("")
     catch err
         threw = true
-        let diag = when err
-            is pkg::TemplateError => f"TemplateError(field={err.field}): {err.message}"
-            else => f"error: {err}"
-        end
+        let diag = pkg::format_caught_error(err)
         runner_assert_str_eq(r, diag, "TemplateError(field=label): label must not be empty", "caught TemplateError renders field context")
     end
     runner_assert_true(r, threw, "pkg::process_strict throws TemplateError on empty label")

@@ -160,7 +160,8 @@ main()
 | `collect_drop(items, n)` | `pub function` | Drops the first `n` elements (slicing). |
 | `collect_contains(items, v)` | `pub function` | Reports membership via `in`. |
 | `collect_map_each(items, f)` | `pub function` | Generic `[T, U]` elementwise closure map. |
-| `combine_stats(a, b)` | `pub function` | Fieldwise sum of two `TemplateStats` records. |
+| `TemplateStats.operator+(other)` | `pub method` | Elementwise sum of two `TemplateStats` records. |
+| `TemplateStats.operator==(other)` | `pub method` | Fieldwise equality of two `TemplateStats` records. |
 | `extra_greeting(name = "World")` | `pub function` (`extras` feature, default-on) | Enthusiastic greeting slice gated by `@cfg(feature = "extras")`; stub throws a descriptive error when the feature is off. |
 | `Summarizable` | `pub interface` | Structural contract requiring `summary(self) -> string`. |
 | `Describable` | `pub interface` | Structural contract requiring `describe(self) -> string` and `is_valid(self) -> bool`. |

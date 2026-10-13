@@ -454,29 +454,40 @@ end
 
 ## Combines two statistics records field by field.
 ##
-## Plain-function equivalent of an elementwise sum. (Operator overloading
-## with `operator+` is intentionally not showcased here: cross-module
-## overloaded operators returning structs currently misbehave, see
-## alya-lang/alya#180. Revisit once that issue is fixed.)
+## Demonstrates operator overloading (`+`).
 ##
 ## ### Parameters
-## - `a`: The left `TemplateStats` instance.
-## - `b`: The right `TemplateStats` instance.
+## - `self`: The left `TemplateStats` instance.
+## - `other`: The right `TemplateStats` instance.
 ##
 ## ### Returns
 ## New `TemplateStats` with summed counters.
 ##
 ## ### Examples
 ## ```alya
-## let total = combine_stats(make_stats(10, 9, 1, 0), make_stats(10, 8, 2, 0))
+## let total = make_stats(10, 9, 1, 0) + make_stats(10, 8, 2, 0)
 ## ```
-pub function combine_stats(a: TemplateStats, b: TemplateStats) -> TemplateStats
+pub function TemplateStats.operator+(self: TemplateStats, other: TemplateStats) -> TemplateStats
     return TemplateStats {
-        total: a.total + b.total,
-        passed: a.passed + b.passed,
-        failed: a.failed + b.failed,
-        skipped: a.skipped + b.skipped
+        total: self.total + other.total,
+        passed: self.passed + other.passed,
+        failed: self.failed + other.failed,
+        skipped: self.skipped + other.skipped
     }
+end
+
+## Compares two statistics records for field equality.
+##
+## Demonstrates operator overloading (`==`).
+##
+## ### Parameters
+## - `self`: The left `TemplateStats` instance.
+## - `other`: The right `TemplateStats` instance.
+##
+## ### Returns
+## True when all counters match, false otherwise.
+pub function TemplateStats.operator==(self: TemplateStats, other: TemplateStats) -> bool
+    return self.total == other.total and self.passed == other.passed and self.failed == other.failed and self.skipped == other.skipped
 end
 
 # ───────────────────────────────────────────────────────────────

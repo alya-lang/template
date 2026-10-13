@@ -74,14 +74,30 @@ pub function check_label(label: string?) -> string
     return clean
 end
 
-# NOTE (catch-site narrowing): fields of a value captured by `catch err`
-# are only readable at the catch site itself, either directly (`err.field`)
-# or under `when err is TemplateError` narrowing there. Passing the raw
-# caught value into another function loses fields beyond the first, so
-# always dispatch with an inline `when` where you catch:
-#   catch err
-#       let diag = when err
-#           is TemplateError => f"TemplateError(field={err.field}): {err.message}"
-#           else => f"error: {err}"
-#       end
-#   end
+## Formats a caught error value into a readable diagnostic string.
+##
+## Dispatches on the error shape with `when`: structured `TemplateError`
+## values render field context, anything else renders generically. Prefer
+## narrowing with an inline `when` at the `catch` site for hot paths; this
+## helper keeps call sites tidy.
+##
+## ### Parameters
+## - `err`: Value captured by a `catch err` clause.
+##
+## ### Returns
+## Formatted diagnostic string.
+##
+## ### Examples
+## ```alya
+## try
+##     check_label("")
+## catch err
+##     say format_caught_error(err)
+## end
+## ```
+pub function format_caught_error(err) -> string
+    return when err
+        is TemplateError => f"TemplateError(field={err.field}): {err.message}"
+        else => f"error: {err}"
+    end
+end

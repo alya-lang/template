@@ -77,10 +77,6 @@ end
 ## a thrown `TemplateError` into a failed `TemplateResult` instead
 ## of propagating (see `examples/demo.alya` for `finally` cleanup).
 ##
-## NOTE: the result is assigned inside `try` and returned after the block
-## instead of returning directly from `try`/`catch`, so repeated calls in
-## loops keep handler state balanced.
-##
 ## ### Parameters
 ## - `label`: Target entity label string (nullable).
 ## - `count`: Counter or repetition count. Defaults to `1`.
@@ -96,17 +92,12 @@ end
 ## ```
 @cfg(feature = "strict")
 pub function try_pipeline_process(label: string?, count: int = 1, priority: int = TemplatePriority.Normal) -> TemplateResult
-    let out = error_result("unreachable", [])
     try
-        out = pipeline_strict_process(label, count, priority)
+        return pipeline_strict_process(label, count, priority)
     catch err
-        let diag = when err
-            is TemplateError => f"TemplateError(field={err.field}): {err.message}"
-            else => f"error: {err}"
-        end
-        out = error_result(diag, [diag])
+        let diag = format_caught_error(err)
+        return error_result(diag, [diag])
     end
-    return out
 end
 
 ## Formats an array of labels in batch.
